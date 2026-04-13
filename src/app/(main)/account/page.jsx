@@ -33,6 +33,7 @@ export default function AccountPage() {
     isDefault: false
   });
   const [savingAddress, setSavingAddress] = useState(false);
+  const [deletingAddressId, setDeletingAddressId] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -49,15 +50,15 @@ export default function AccountPage() {
     if (activeTab === 'profile') {
       setEditProfileData({ name: user.name || '', email: user.email || '' });
     }
-
-    if (activeTab === 'addresses') {
-      setLoadingAddresses(true);
-      api.get('/auth/addresses')
-        .then(res => setAddresses(res.data.addresses || []))
-        .catch(err => console.error(err))
-        .finally(() => setLoadingAddresses(false));
-    }
   }, [activeTab, user]);
+
+  useEffect(() => {
+    setLoadingAddresses(true);
+    api.get('/auth/addresses')
+      .then(res => setAddresses(res.data.addresses || res.data || []))
+      .catch(err => console.error(err))
+      .finally(() => setLoadingAddresses(false));
+  }, []);
 
   const formatCurrency = (amount) => `₹${Number(amount || 0).toLocaleString('en-IN')}`;
   const formatDate = (dateString) => {
@@ -139,10 +140,10 @@ export default function AccountPage() {
   };
 
   const handleDeleteAddress = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this address?")) return;
     try {
       const res = await api.delete(`/auth/addresses/${id}`);
       setAddresses(res.data.addresses);
+      setDeletingAddressId(null);
     } catch (err) {
       console.error(err);
       alert('Failed to delete address');
@@ -423,18 +424,40 @@ export default function AccountPage() {
                           </div>
                           
                           <div className="flex gap-4 border-t border-[#E5E7EB] pt-4">
-                            <button 
-                              onClick={() => openEditAddress(addr)}
-                              className="text-[13px] font-[600] text-[#0057A8] hover:underline"
-                            >
-                              Edit
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteAddress(addr?._id)} 
-                              className="text-[13px] font-[600] text-[#EF4444] hover:underline"
-                            >
-                              Delete
-                            </button>
+                            {deletingAddressId === addr?._id ? (
+                              <div className="flex items-center gap-3 w-full justify-between">
+                                <span className="text-[13px] font-[600] text-[#EF4444]">Delete this address?</span>
+                                <div className="flex gap-2">
+                                  <button 
+                                    onClick={() => setDeletingAddressId(null)}
+                                    className="text-[13px] font-[600] text-[#6B7280] hover:underline px-2 py-1"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteAddress(addr?._id)} 
+                                    className="text-[13px] font-[600] bg-[#FEE2E2] text-[#EF4444] rounded-[8px] px-3 py-1 hover:bg-red-200 transition-colors"
+                                  >
+                                    Yes, Delete
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <button 
+                                  onClick={() => openEditAddress(addr)}
+                                  className="text-[13px] font-[600] text-[#0057A8] hover:underline"
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => setDeletingAddressId(addr?._id)} 
+                                  className="text-[13px] font-[600] text-[#EF4444] hover:underline"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
                       ))}
