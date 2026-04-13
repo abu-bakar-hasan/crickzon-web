@@ -1,68 +1,156 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-
-// Mock Data
-const mockOrders = [
-  {
-    id: "ORD10092",
-    date: "12 Apr 2026",
-    status: "delivered",
-    total: 3999,
-    items: [
-      { id: 1, name: "SS Ton Elite Bat", variant: "1.1kg / English Willow", price: 3999, quantity: 1, image: "https://ik.imagekit.io/crickzon/product4.png" }
-    ]
-  },
-  {
-    id: "ORD10093",
-    date: "13 Apr 2026",
-    status: "shipped",
-    total: 2799,
-    items: [
-      { id: 2, name: "MRF Genius Bat", variant: "1.2kg / Kashmir Willow", price: 2799, quantity: 1, image: "https://ik.imagekit.io/crickzon/product4.png" }
-    ]
-  }
-];
-
-const mockAddresses = [
-  {
-    id: 1,
-    label: "Home",
-    fullName: "John Doe",
-    phone: "9876543210",
-    street: "123 Cricket Avenue, Block B",
-    city: "Mumbai",
-    state: "Maharashtra",
-    pincode: "400001"
-  }
-];
+import { useAuth } from '@/context/AuthContext';
+import api from '@/lib/axios';
 
 export default function AccountPage() {
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('orders');
   
+  // Orders State
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
   // Profile State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [profileData, setProfileData] = useState({ name: 'John Doe', email: 'john@example.com', phone: '9876543210' });
-  const [editProfileData, setEditProfileData] = useState(profileData);
+  const [editProfileData, setEditProfileData] = useState({ name: '', email: '' });
+  const [profileMessage, setProfileMessage] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
 
-  // Address State
-  const [addresses, setAddresses] = useState(mockAddresses);
+  // Addresses State
+  const [addresses, setAddresses] = useState([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState(null);
+  const [addressForm, setAddressForm] = useState({
+    label: 'Home',
+    street: '',
+    city: '',
+    state: '',
+    pincode: '',
+    isDefault: false
+  });
+  const [savingAddress, setSavingAddress] = useState(false);
 
-  const formatCurrency = (amount) => `₹${amount.toLocaleString('en-IN')}`;
+  useEffect(() => {
+    if (!user) return;
+
+    if (activeTab === 'orders') {
+      setLoadingOrders(true);
+      // Wait assuming API endpoint matches REST standard conventions defined in Next App 
+      api.get('/orders')
+        .then(res => setOrders(res.data.orders || []))
+        .catch(err => console.error(err))
+        .finally(() => setLoadingOrders(false));
+    }
+    
+    if (activeTab === 'profile') {
+      setEditProfileData({ name: user.name || '', email: user.email || '' });
+    }
+
+    if (activeTab === 'addresses') {
+      setLoadingAddresses(true);
+      api.get('/auth/addresses')
+        .then(res => setAddresses(res.data.addresses || []))
+        .catch(err => console.error(err))
+        .finally(() => setLoadingAddresses(false));
+    }
+  }, [activeTab, user]);
+
+  const formatCurrency = (amount) => `₹${Number(amount || 0).toLocaleString('en-IN')}`;
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setEditProfileData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    setProfileData(editProfileData);
-    setIsEditingProfile(false);
+    setSavingProfile(true);
+    try {
+      await api.put('/auth/profile', editProfileData);
+      
+      // Since context user state isn't explicitly deeply mutating automatically here, we just sync locals or trigger a refresh in a real app.
+      // But the instructions specify: On success show message
+      user.name = editProfileData.name;
+      user.email = editProfileData.email;
+      
+      setProfileMessage('Profile updated successfully!');
+      setIsEditingProfile(false);
+      setTimeout(() => setProfileMessage(''), 3000);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleAddressChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setAddressForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const openNewAddress = () => {
+    setAddressForm({ label: 'Home', street: '', city: '', state: '', pincode: '', isDefault: false });
+    setEditingAddressId(null);
+    setShowAddressForm(true);
+  };
+
+  const openEditAddress = (addr) => {
+    setAddressForm({
+      label: addr.label || 'Home',
+      street: addr.street || '',
+      city: addr.city || '',
+      state: addr.state || '',
+      pincode: addr.pincode || '',
+      isDefault: addr.isDefault || false
+    });
+    setEditingAddressId(addr._id);
+    setShowAddressForm(true);
+  };
+
+  const handleSaveAddress = async (e) => {
+    e.preventDefault();
+    setSavingAddress(true);
+    try {
+      if (editingAddressId) {
+        const res = await api.put(`/auth/addresses/${editingAddressId}`, addressForm);
+        setAddresses(res.data.addresses);
+      } else {
+        const res = await api.post('/auth/addresses', addressForm);
+        setAddresses(res.data.addresses);
+      }
+      setShowAddressForm(false);
+      setEditingAddressId(null);
+      setAddressForm({ label: 'Home', street: '', city: '', state: '', pincode: '', isDefault: false });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save address');
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  const handleDeleteAddress = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this address?")) return;
+    try {
+      const res = await api.delete(`/auth/addresses/${id}`);
+      setAddresses(res.data.addresses);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete address');
+    }
   };
 
   const OrderStatusBadge = ({ status }) => {
+    const s = (status || 'pending').toLowerCase();
     const styles = {
       pending: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-blue-100 text-[#0057A8]',
@@ -71,8 +159,8 @@ export default function AccountPage() {
       cancelled: 'bg-red-100 text-red-800'
     };
     return (
-      <span className={`px-2.5 py-1 rounded-full text-[11px] font-[700] uppercase tracking-wider ${styles[status]}`}>
-        {status}
+      <span className={`px-2.5 py-1 rounded-full text-[11px] font-[700] uppercase tracking-wider ${styles[s] || 'bg-gray-100 text-gray-800'}`}>
+        {s}
       </span>
     );
   };
@@ -83,6 +171,17 @@ export default function AccountPage() {
     { id: 'addresses', label: 'Saved Addresses' }
   ];
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] py-20 flex flex-col items-center justify-center">
+        <h1 className="text-xl font-[600] text-[#0F172A] mb-4">You are not logged in</h1>
+        <Link href="/login" className="bg-[#0057A8] text-white px-6 py-2.5 rounded-[8px] font-[500] hover:bg-[#004a8f]">
+          Go to Login
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-8 lg:py-12">
       <div className="max-w-[1240px] mx-auto px-4 lg:px-8 flex flex-col lg:flex-row gap-8">
@@ -91,17 +190,20 @@ export default function AccountPage() {
         <div className="w-full lg:w-[260px] bg-white border border-[#E5E7EB] rounded-[16px] p-6 flex-shrink-0 lg:sticky lg:top-[80px] h-fit shadow-sm">
           <div className="flex flex-col items-center mb-8">
             <div className="w-[64px] h-[64px] rounded-full bg-[#EBF3FF] text-[#0057A8] text-[20px] font-[700] flex items-center justify-center mb-4">
-              {profileData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+              {user.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}
             </div>
-            <h2 className="text-[16px] font-[600] text-[#0F172A] text-center">{profileData.name}</h2>
-            <p className="text-[13px] text-[#6B7280] text-center">{profileData.email}</p>
+            <h2 className="text-[16px] font-[600] text-[#0F172A] text-center">{user.name}</h2>
+            <p className="text-[13px] text-[#6B7280] text-center">{user.email}</p>
           </div>
 
           <nav className="flex flex-col gap-1.5">
             {navLinks.map(link => (
               <button
                 key={link.id}
-                onClick={() => setActiveTab(link.id)}
+                onClick={() => {
+                  setActiveTab(link.id);
+                  setShowAddressForm(false);
+                }}
                 className={`text-left text-[14px] font-[500] px-[16px] py-[12px] rounded-[8px] transition-all duration-200 ${
                   activeTab === link.id 
                     ? 'bg-[#EBF3FF] text-[#0057A8] border-l-[3px] border-[#0057A8]' 
@@ -114,7 +216,10 @@ export default function AccountPage() {
             
             <div className="h-px bg-[#E5E7EB] my-2"></div>
             
-            <button className="text-left text-[14px] font-[500] px-[16px] py-[12px] rounded-[8px] transition-colors text-[#EF4444] hover:bg-red-50 border-l-[3px] border-transparent mt-1">
+            <button 
+              onClick={() => logout()}
+              className="text-left text-[14px] font-[500] px-[16px] py-[12px] rounded-[8px] transition-colors text-[#EF4444] hover:bg-red-50 border-l-[3px] border-transparent mt-1"
+            >
               Logout
             </button>
           </nav>
@@ -122,12 +227,15 @@ export default function AccountPage() {
 
         {/* Right - Content Area */}
         <div className="flex-1">
-          {/* Tabs Content */}
+          
+          {/* ORDERS TAB */}
           {activeTab === 'orders' && (
             <div>
               <h1 className="text-[20px] font-[700] text-[#0F172A] mb-6">My Orders</h1>
               
-              {mockOrders.length === 0 ? (
+              {loadingOrders ? (
+                <div className="text-center py-10 text-gray-500 animate-pulse">Loading your orders...</div>
+              ) : orders.length === 0 ? (
                 <div className="bg-white border border-[#E5E7EB] rounded-[16px] flex flex-col items-center justify-center py-16 text-center shadow-sm">
                   <div className="text-[48px] mb-4">📦</div>
                   <p className="text-[16px] font-[600] text-[#0F172A] mb-2">No orders found</p>
@@ -135,30 +243,39 @@ export default function AccountPage() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
-                  {mockOrders.map((order) => (
-                    <div key={order.id} className="bg-white border border-[#E5E7EB] rounded-[16px] p-[20px] shadow-sm">
+                  {orders.map((order) => (
+                    <div key={order._id} className="bg-white border border-[#E5E7EB] rounded-[16px] p-[20px] shadow-sm">
                       
                       <div className="flex justify-between items-center border-b border-[#E5E7EB] pb-4 mb-4">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[13px] font-mono text-[#6B7280]">#{order.id}</span>
-                          <span className="text-[14px] font-[500] text-[#0F172A]">{order.date}</span>
+                          <span className="text-[13px] font-mono text-[#6B7280]">#{order._id?.slice(-6).toUpperCase()}</span>
+                          <span className="text-[14px] font-[500] text-[#0F172A]">{formatDate(order.createdAt)}</span>
                         </div>
                         <OrderStatusBadge status={order.status} />
                       </div>
 
                       <div className="flex flex-col gap-4">
-                        {order.items.map(item => (
-                          <div key={item.id} className="flex gap-4 items-center">
-                            <img src={item.image} alt={item.name} className="w-[48px] h-[48px] rounded-[8px] bg-[#F0F4F8] object-cover flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-[14px] font-[600] text-[#0F172A] truncate">{item.name}</h3>
-                              <p className="text-[12px] text-[#6B7280] truncate">{item.variant}</p>
+                        {(order.items || []).map((item, idx) => {
+                          const variantInfo = typeof item.selectedOptions === 'object' && item.selectedOptions
+                            ? Object.entries(item.selectedOptions).map(([k,v]) => `${k}: ${v}`).join(' / ')
+                            : '';
+                          return (
+                            <div key={idx} className="flex gap-4 items-center">
+                              {item.image ? (
+                                <img src={item.image} alt={item.name} className="w-[48px] h-[48px] rounded-[8px] bg-[#F0F4F8] object-cover flex-shrink-0" />
+                              ) : (
+                                <div className="w-[48px] h-[48px] rounded-[8px] bg-[#F0F4F8] flex-shrink-0 flex items-center justify-center text-[10px] text-gray-400">No Image</div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-[14px] font-[600] text-[#0F172A] truncate">{item.name}</h3>
+                                {variantInfo && <p className="text-[12px] text-[#6B7280] truncate">{variantInfo}</p>}
+                              </div>
+                              <div className="text-[13px] font-[500] text-[#6B7280]">
+                                x{item.quantity}
+                              </div>
                             </div>
-                            <div className="text-[13px] font-[500] text-[#6B7280]">
-                              x{item.quantity}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
 
                       <div className="flex justify-between items-center border-t border-[#E5E7EB] mt-4 pt-4">
@@ -166,11 +283,7 @@ export default function AccountPage() {
                           <p className="text-[12px] text-[#6B7280] mb-0.5">Total Amount</p>
                           <p className="text-[16px] font-[600] text-[#0057A8]">{formatCurrency(order.total)}</p>
                         </div>
-                        <Link href="#" className="text-[13px] font-[600] text-[#0057A8] hover:underline px-4 py-2 border border-[#E5E7EB] rounded-[8px] hover:bg-gray-50 transition-colors">
-                          View Details
-                        </Link>
                       </div>
-
                     </div>
                   ))}
                 </div>
@@ -178,20 +291,25 @@ export default function AccountPage() {
             </div>
           )}
 
+          {/* PROFILE TAB */}
           {activeTab === 'profile' && (
             <div>
-              <h1 className="text-[20px] font-[700] text-[#0F172A] mb-6">My Profile</h1>
+              <div className="flex items-center gap-4 mb-6">
+                <h1 className="text-[20px] font-[700] text-[#0F172A]">My Profile</h1>
+                {profileMessage && (
+                  <span className="bg-green-100 text-green-700 px-3 py-1 text-[13px] font-[500] rounded-full animate-fade-in">
+                    {profileMessage}
+                  </span>
+                )}
+              </div>
               
               {!isEditingProfile ? (
                 <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-[24px] shadow-sm">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                     <h2 className="text-[16px] font-[600] text-[#0F172A]">Personal Information</h2>
                     <button 
-                      onClick={() => {
-                        setEditProfileData(profileData);
-                        setIsEditingProfile(true);
-                      }}
-                      className="text-[13px] font-[600] text-[#0057A8] border border-[#E5E7EB] px-4 py-2 rounded-[8px] hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsEditingProfile(true)}
+                      className="text-[13px] font-[600] text-[#0057A8] border border-[#E5E7EB] px-4 py-2 rounded-[8px] hover:bg-[#EBF3FF] transition-colors"
                     >
                       Edit Profile
                     </button>
@@ -200,15 +318,11 @@ export default function AccountPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                     <div>
                       <p className="text-[13px] text-[#6B7280] mb-1">Full Name</p>
-                      <p className="text-[15px] font-[500] text-[#0F172A]">{profileData.name}</p>
+                      <p className="text-[15px] font-[500] text-[#0F172A]">{user.name}</p>
                     </div>
                     <div>
                       <p className="text-[13px] text-[#6B7280] mb-1">Email Address</p>
-                      <p className="text-[15px] font-[500] text-[#0F172A]">{profileData.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-[13px] text-[#6B7280] mb-1">Phone Number</p>
-                      <p className="text-[15px] font-[500] text-[#0F172A]">{profileData.phone}</p>
+                      <p className="text-[15px] font-[500] text-[#0F172A]">{user.email}</p>
                     </div>
                   </div>
                 </div>
@@ -223,7 +337,7 @@ export default function AccountPage() {
                       name="name" 
                       value={editProfileData.name} 
                       onChange={handleProfileChange} 
-                      className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px]" 
+                      className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px] text-[#0F172A]" 
                       required 
                     />
                   </div>
@@ -235,19 +349,7 @@ export default function AccountPage() {
                       name="email" 
                       value={editProfileData.email} 
                       onChange={handleProfileChange} 
-                      className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px]" 
-                      required 
-                     />
-                  </div>
-                  
-                  <div className="flex flex-col gap-1.5">
-                     <label className="text-[13px] font-[500] text-[#374151]">Phone Number</label>
-                     <input 
-                      type="tel" 
-                      name="phone" 
-                      value={editProfileData.phone} 
-                      onChange={handleProfileChange} 
-                      className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px]" 
+                      className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px] text-[#0F172A]" 
                       required 
                      />
                   </div>
@@ -262,9 +364,10 @@ export default function AccountPage() {
                      </button>
                      <button 
                       type="submit" 
-                      className="px-6 py-2.5 rounded-[10px] text-[15px] font-[600] text-white bg-[#0057A8] hover:bg-[#004a8f] transition-colors shadow-sm"
+                      disabled={savingProfile}
+                      className="px-6 py-2.5 rounded-[10px] text-[15px] font-[600] text-white bg-[#0057A8] hover:bg-[#004a8f] transition-colors shadow-sm disabled:opacity-75"
                      >
-                       Save Changes
+                       {savingProfile ? 'Saving...' : 'Save Changes'}
                      </button>
                   </div>
                 </form>
@@ -272,53 +375,174 @@ export default function AccountPage() {
             </div>
           )}
 
+          {/* ADDRESSES TAB */}
           {activeTab === 'addresses' && (
             <div>
-              <div className="flex justify-between items-center mb-6">
-                <h1 className="text-[20px] font-[700] text-[#0F172A]">Saved Addresses</h1>
-                <button className="text-[13px] font-[600] text-white bg-[#0057A8] px-4 py-2 rounded-[8px] hover:bg-[#004a8f] transition-colors shadow-sm">
-                  Add New
-                </button>
-              </div>
               
-              {addresses.length === 0 ? (
-                <div className="bg-white border border-[#E5E7EB] rounded-[16px] flex flex-col items-center justify-center py-16 text-center shadow-sm">
-                  <div className="text-[48px] mb-4">🏠</div>
-                  <p className="text-[16px] font-[600] text-[#0F172A] mb-2">No addresses saved</p>
-                  <p className="text-[14px] text-[#6B7280] px-4">Add an address to make your checkout experience faster.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {addresses.map(addr => (
-                    <div key={addr.id} className="bg-white border border-[#E5E7EB] rounded-[16px] p-[20px] shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start mb-4">
-                          <span className="bg-gray-100 text-gray-700 border border-gray-200 text-[11px] font-[700] px-2.5 py-1 rounded inline-block uppercase tracking-wider">
-                            {addr.label}
-                          </span>
+              {!showAddressForm ? (
+                <>
+                  <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-[20px] font-[700] text-[#0F172A]">Saved Addresses</h1>
+                    <button 
+                      onClick={openNewAddress}
+                      className="text-[13px] font-[600] text-white bg-[#0057A8] px-4 py-2 rounded-[8px] hover:bg-[#004a8f] transition-colors shadow-sm"
+                    >
+                      Add New Address
+                    </button>
+                  </div>
+
+                  {loadingAddresses ? (
+                    <div className="text-center py-10 text-gray-500 animate-pulse">Loading addresses...</div>
+                  ) : addresses.length === 0 ? (
+                    <div className="bg-white border border-[#E5E7EB] rounded-[16px] flex flex-col items-center justify-center py-16 text-center shadow-sm">
+                      <div className="text-[48px] mb-4">🏠</div>
+                      <p className="text-[16px] font-[600] text-[#0F172A] mb-2">No addresses saved</p>
+                      <p className="text-[14px] text-[#6B7280] px-4">Add an address to make your checkout experience faster.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {addresses.filter(Boolean).map(addr => (
+                        <div key={addr?._id} className="bg-white border border-[#E5E7EB] rounded-[16px] p-[20px] shadow-sm flex flex-col justify-between relative">
+                          
+                          {addr?.isDefault && (
+                            <span className="absolute top-5 right-5 text-[11px] font-[700] bg-gray-100 text-[#0F172A] px-2 py-0.5 rounded">
+                              DEFAULT
+                            </span>
+                          )}
+
+                          <div>
+                            <div className="flex justify-between items-start mb-4">
+                              <span className="bg-[#EBF3FF] text-[#0057A8] border border-blue-100 text-[11px] font-[700] px-2.5 py-1 rounded inline-block uppercase tracking-wider">
+                                {addr?.label}
+                              </span>
+                            </div>
+                            <p className="text-[14px] text-[#6B7280] leading-relaxed mb-6">
+                              <span className="text-[#0F172A] font-[500] block mb-1">{addr?.street}</span>
+                              {addr?.city}, {addr?.state} <br/> {addr?.pincode}
+                            </p>
+                          </div>
+                          
+                          <div className="flex gap-4 border-t border-[#E5E7EB] pt-4">
+                            <button 
+                              onClick={() => openEditAddress(addr)}
+                              className="text-[13px] font-[600] text-[#0057A8] hover:underline"
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteAddress(addr?._id)} 
+                              className="text-[13px] font-[600] text-[#EF4444] hover:underline"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
-                        <p className="text-[15px] font-[600] text-[#0F172A] mb-1">
-                          {addr.fullName} <span className="text-gray-400 font-[400] text-[14px] ml-2">{addr.phone}</span>
-                        </p>
-                        <p className="text-[14px] text-[#6B7280] leading-relaxed mb-6">
-                          {addr.street}<br/>
-                          {addr.city}, {addr.state} {addr.pincode}
-                        </p>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-[24px] shadow-sm">
+                  <h2 className="text-[18px] font-[600] text-[#0F172A] mb-6">
+                    {editingAddressId ? 'Edit Address' : 'Add New Address'}
+                  </h2>
+                  <form onSubmit={handleSaveAddress} className="flex flex-col gap-6">
+                    
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[13px] font-[500] text-[#374151]">Address Label</label>
+                      <select 
+                        name="label" 
+                        value={addressForm.label} 
+                        onChange={handleAddressChange}
+                        className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px] text-[#0F172A] bg-white"
+                      >
+                        <option value="Home">Home</option>
+                        <option value="Work">Work</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[13px] font-[500] text-[#374151]">Street Address</label>
+                      <input 
+                        type="text" 
+                        name="street" 
+                        value={addressForm.street} 
+                        onChange={handleAddressChange} 
+                        className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px] text-[#0F172A]" 
+                        required 
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[13px] font-[500] text-[#374151]">City</label>
+                        <input 
+                          type="text" 
+                          name="city" 
+                          value={addressForm.city} 
+                          onChange={handleAddressChange} 
+                          className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px] text-[#0F172A]" 
+                          required 
+                        />
                       </div>
-                      
-                      <div className="flex gap-4 border-t border-[#E5E7EB] pt-4">
-                        <button className="text-[13px] font-[600] text-[#0057A8] hover:underline">
-                          Edit
-                        </button>
-                        <button 
-                          onClick={() => setAddresses(prev => prev.filter(a => a.id !== addr.id))} 
-                          className="text-[13px] font-[600] text-[#EF4444] hover:underline"
-                        >
-                          Delete
-                        </button>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[13px] font-[500] text-[#374151]">State</label>
+                        <input 
+                          type="text" 
+                          name="state" 
+                          value={addressForm.state} 
+                          onChange={handleAddressChange} 
+                          className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px] text-[#0F172A]" 
+                          required 
+                        />
                       </div>
                     </div>
-                  ))}
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[13px] font-[500] text-[#374151]">Pincode</label>
+                      <input 
+                        type="text" 
+                        name="pincode" 
+                        value={addressForm.pincode} 
+                        onChange={handleAddressChange} 
+                        className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px] text-[#0F172A]" 
+                        required 
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-2">
+                      <input 
+                        type="checkbox" 
+                        id="isDefault" 
+                        name="isDefault" 
+                        checked={addressForm.isDefault} 
+                        onChange={handleAddressChange}
+                        className="w-4 h-4 text-[#0057A8] border-[#E5E7EB] rounded focus:ring-[#0057A8]"
+                      />
+                      <label htmlFor="isDefault" className="text-[14px] text-[#374151] select-none cursor-pointer">
+                        Set as default address
+                      </label>
+                    </div>
+
+                    <div className="flex justify-end gap-3 mt-4">
+                       <button 
+                        type="button" 
+                        onClick={() => setShowAddressForm(false)} 
+                        className="px-6 py-2.5 rounded-[10px] text-[15px] font-[600] text-[#374151] hover:bg-gray-100 border border-transparent transition-colors"
+                       >
+                         Cancel
+                       </button>
+                       <button 
+                        type="submit" 
+                        disabled={savingAddress}
+                        className="px-6 py-2.5 rounded-[10px] text-[15px] font-[600] text-white bg-[#0057A8] hover:bg-[#004a8f] transition-colors shadow-sm disabled:opacity-75"
+                       >
+                         {savingAddress ? 'Saving...' : 'Save Address'}
+                       </button>
+                    </div>
+
+                  </form>
                 </div>
               )}
             </div>

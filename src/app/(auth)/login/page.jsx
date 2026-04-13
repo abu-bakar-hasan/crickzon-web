@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, register } = useAuth();
   const [activeTab, setActiveTab] = useState('login');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -56,16 +58,24 @@ export default function LoginPage() {
     if (!validate()) return;
 
     setLoading(true);
+    setErrors((prev) => ({ ...prev, apiError: '' }));
 
-    // Simulate API call delay
-    setTimeout(() => {
-      setLoading(false);
+    try {
       if (activeTab === 'login') {
+        await login(formData.email, formData.password);
         router.push('/account');
       } else {
+        await register(formData.fullName, formData.email, formData.password);
         router.push('/');
       }
-    }, 1500);
+    } catch (err) {
+      setErrors((prev) => ({
+        ...prev,
+        apiError: err.response?.data?.message || (activeTab === 'login' ? 'Invalid credentials' : 'Registration failed')
+      }));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const switchTab = (tab) => {
@@ -112,6 +122,11 @@ export default function LoginPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {errors.apiError && (
+            <div className="bg-red-50 text-red-500 text-[13px] font-medium p-3 rounded-[10px] border border-red-100 flex items-center justify-center text-center leading-snug">
+              {errors.apiError}
+            </div>
+          )}
           {activeTab === 'signup' && (
             <div className="flex flex-col gap-1.5">
               <input
@@ -120,7 +135,7 @@ export default function LoginPage() {
                 value={formData.fullName}
                 onChange={handleInputChange}
                 placeholder="Full Name"
-                className={`w-full h-[44px] px-4 rounded-[10px] border text-[15px] outline-none transition-colors placeholder:text-gray-400 ${
+                className={`w-full h-[44px] px-4 rounded-[10px] border text-[15px] outline-none transition-colors bg-white text-[#0F172A] placeholder:text-[#9CA3AF] ${
                   errors.fullName ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB] focus:border-[#0057A8]'
                 }`}
               />
@@ -135,7 +150,7 @@ export default function LoginPage() {
               value={formData.email}
               onChange={handleInputChange}
               placeholder="Email"
-              className={`w-full h-[44px] px-4 rounded-[10px] border text-[15px] outline-none transition-colors placeholder:text-gray-400 ${
+              className={`w-full h-[44px] px-4 rounded-[10px] border text-[15px] outline-none transition-colors bg-white text-[#0F172A] placeholder:text-[#9CA3AF] ${
                 errors.email ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB] focus:border-[#0057A8]'
               }`}
             />
@@ -150,7 +165,7 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="Password"
-                className={`w-full h-[44px] pl-4 pr-11 rounded-[10px] border text-[15px] outline-none transition-colors placeholder:text-gray-400 ${
+                className={`w-full h-[44px] pl-4 pr-11 rounded-[10px] border text-[15px] outline-none transition-colors bg-white text-[#0F172A] placeholder:text-[#9CA3AF] ${
                   errors.password ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB] focus:border-[#0057A8]'
                 }`}
               />
@@ -179,7 +194,7 @@ export default function LoginPage() {
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   placeholder="Confirm Password"
-                  className={`w-full h-[44px] pl-4 pr-11 rounded-[10px] border text-[15px] outline-none transition-colors placeholder:text-gray-400 ${
+                  className={`w-full h-[44px] pl-4 pr-11 rounded-[10px] border text-[15px] outline-none transition-colors bg-white text-[#0F172A] placeholder:text-[#9CA3AF] ${
                     errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-[#E5E7EB] focus:border-[#0057A8]'
                   }`}
                 />

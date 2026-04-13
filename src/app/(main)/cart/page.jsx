@@ -3,52 +3,20 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
-const mockCart = [
-  { 
-    id: 1, 
-    name: "SS Ton Elite Bat", 
-    variant: "1.1kg / English Willow", 
-    price: 3999, 
-    quantity: 1, 
-    image: "https://ik.imagekit.io/crickzon/product4.png" 
-  },
-  { 
-    id: 2, 
-    name: "MRF Genius Bat", 
-    variant: "1.2kg / Kashmir Willow", 
-    price: 2799, 
-    quantity: 2, 
-    image: "https://ik.imagekit.io/crickzon/product4.png" 
-  }
-];
+import useCartStore from '@/store/cartStore';
 
 export default function CartPage() {
   const router = useRouter();
-  const [cartItems, setCartItems] = useState(mockCart);
+  const { items, removeItem, updateQuantity, getTotalPrice, getTotalItems } = useCartStore();
 
-  const updateQuantity = (id, delta) => {
-    setCartItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const newQuantity = Math.max(1, item.quantity + delta);
-        return { ...item, quantity: newQuantity };
-      }
-      return item;
-    }));
-  };
-
-  const removeItem = (id) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
-  };
-
-  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shipping = subtotal > 999 ? 0 : 99;
+  const totalItems = getTotalItems();
+  const subtotal = getTotalPrice();
+  const shipping = subtotal >= 999 ? 0 : 99;
   const total = subtotal + shipping;
 
   const formatCurrency = (amount) => `₹${amount.toLocaleString('en-IN')}`;
 
-  if (cartItems.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-4 min-h-screen bg-[#F8FAFC]">
         <div className="text-[64px] mb-4">🛒</div>
@@ -81,9 +49,14 @@ export default function CartPage() {
           </div>
 
           <div className="flex flex-col">
-            {cartItems.map((item) => (
+            {items.map((item) => {
+              const variantInfo = Object.entries(item.selectedOptions || {})
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(' / ');
+              
+              return (
               <div 
-                key={item.id} 
+                key={item.variantId} 
                 className="bg-white border border-[#E5E7EB] rounded-[16px] p-[16px] mb-[12px] flex flex-col sm:flex-row gap-4 relative"
               >
                 {/* Due to Image domains restriction safely using standard standard img for mock external data */}
@@ -95,8 +68,10 @@ export default function CartPage() {
                 
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h2 className="text-[15px] font-[600] text-[#0F172A] mb-1">{item.name}</h2>
-                    <p className="text-[13px] text-[#6B7280]">{item.variant}</p>
+                    <h2 className="text-[15px] font-[600] text-[#0F172A] mb-1">
+                      {item.brand ? `${item.brand} ` : ''}{item.name}
+                    </h2>
+                    <p className="text-[13px] text-[#6B7280]">{variantInfo}</p>
                   </div>
                   
                   <div className="flex items-center justify-between mt-4 sm:mt-0">
@@ -108,7 +83,7 @@ export default function CartPage() {
                       {/* Quantity Selector */}
                       <div className="flex items-center border border-[#E5E7EB] rounded-full h-[36px] overflow-hidden bg-gray-50">
                         <button 
-                          onClick={() => updateQuantity(item.id, -1)}
+                          onClick={() => updateQuantity(item.variantId, Math.max(1, item.quantity - 1))}
                           className="w-[32px] h-full flex items-center justify-center text-[#0F172A] hover:bg-[#E5E7EB] transition-colors"
                           aria-label="Decrease quantity"
                         >
@@ -118,7 +93,7 @@ export default function CartPage() {
                           {item.quantity}
                         </span>
                         <button 
-                          onClick={() => updateQuantity(item.id, 1)}
+                          onClick={() => updateQuantity(item.variantId, Math.min(item.stock || 1, item.quantity + 1))}
                           className="w-[32px] h-full flex items-center justify-center text-[#0F172A] hover:bg-[#E5E7EB] transition-colors"
                           aria-label="Increase quantity"
                         >
@@ -128,7 +103,7 @@ export default function CartPage() {
 
                       {/* Remove Button */}
                       <button 
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(item.variantId)}
                         className="w-[36px] h-[36px] flex items-center justify-center rounded-full text-[#EF4444] hover:bg-[#FEE2E2] transition-colors"
                         aria-label="Remove item"
                       >
@@ -138,7 +113,8 @@ export default function CartPage() {
                   </div>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className="mt-6 mb-8 lg:mb-0">

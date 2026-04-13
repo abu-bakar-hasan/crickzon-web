@@ -2,65 +2,81 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-
-const mockProduct = {
-  name: "SS Ton Elite Bat",
-  brand: "SS",
-  category: "Bats",
-  description: "Professional cricket bat crafted for elite players. Delivering unparalleled power and a legendary sweet spot for the modern game.",
-  // Generating identical images to demonstrate the thumbnail gallery functionally
-  images: [
-    "https://ik.imagekit.io/crickzon/mrf-genius_dSGO-OAk-.webp",
-    "https://ik.imagekit.io/crickzon/mrf-genius_dSGO-OAk-.webp",
-    "https://ik.imagekit.io/crickzon/mrf-genius_dSGO-OAk-.webp",
-    "https://ik.imagekit.io/crickzon/mrf-genius_dSGO-OAk-.webp"
-  ],
-  options: [
-    { name: "Weight", values: ["1.1kg", "1.2kg", "1.3kg"] },
-    { name: "Grade", values: ["English Willow", "Kashmir Willow"] }
-  ],
-  variants: [
-    { options: { Weight: "1.1kg", Grade: "English Willow" }, price: 3999, stock: 20 },
-    { options: { Weight: "1.1kg", Grade: "Kashmir Willow" }, price: 2499, stock: 15 },
-    { options: { Weight: "1.2kg", Grade: "English Willow" }, price: 4299, stock: 8 },
-    { options: { Weight: "1.2kg", Grade: "Kashmir Willow" }, price: 2799, stock: 0 },
-    // Mock missing variants to show what happens if none match
-  ]
-};
+import { useParams } from 'next/navigation';
+import api from '@/lib/axios';
+import useCartStore from '@/store/cartStore';
 
 export default function ProductDetailPage() {
+  const params = useParams();
+  const slug = params?.slug || '';
+
+  const [product, setProduct] = useState(null);
+  const [variants, setVariants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { addItem } = useCartStore();
+
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [quantity, setQuantity] = useState(1);
 
-  // Initialize selected options with the first available values
+  // Fetch product data
   useEffect(() => {
-    const initialOptions = {};
-    mockProduct.options.forEach(opt => {
-      initialOptions[opt.name] = opt.values[0];
-    });
-    setSelectedOptions(initialOptions);
-  }, []);
+    if (!slug) return;
+    setLoading(true);
+    api.get(`/products/${slug}`)
+      .then(res => {
+        setProduct(res.data.product);
+        setVariants(res.data.variants);
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
+  }, [slug]);
 
-  // Find the currently selected variant
-  const currentVariant = useMemo(() => {
-    return mockProduct.variants.find(v => {
-      // Check if all selected option values match the variant's options
-      for (const key in selectedOptions) {
-        if (v.options[key] !== selectedOptions[key]) return false;
-      }
-      return true;
+  // Build options from variants dynamically
+  const optionsMap = useMemo(() => {
+    const options = {};
+    variants.forEach(variant => {
+      variant.options.forEach(opt => {
+        const optName = opt.option?.name || opt.option;
+        if (!options[optName]) options[optName] = new Set();
+        options[optName].add(opt.value);
+      });
     });
-  }, [selectedOptions]);
+    // Convert sets to arrays
+    return Object.fromEntries(
+      Object.entries(options).map(([k, v]) => [k, [...v]])
+    );
+  }, [variants]);
 
-  // Handle stock boundary logic
+  // Initialize selected options with the first available values whenever options evaluate
   useEffect(() => {
-    if (!currentVariant || currentVariant.stock === 0) {
-      setQuantity(1);
-    } else if (quantity > currentVariant.stock) {
-      setQuantity(currentVariant.stock);
+    if (Object.keys(optionsMap).length > 0 && Object.keys(selectedOptions).length === 0) {
+      const initialOptions = {};
+      Object.keys(optionsMap).forEach(optName => {
+        initialOptions[optName] = optionsMap[optName][0];
+      });
+      setSelectedOptions(initialOptions);
     }
-  }, [currentVariant, quantity]);
+  }, [optionsMap, selectedOptions]);
+
+  // Find the currently selected variant safely evaluating option permutations
+  const selectedVariant = useMemo(() => {
+    if (variants.length === 0) return null;
+    return variants.find(variant =>
+      Object.entries(selectedOptions).every(([optName, val]) =>
+        variant.options.some(o => (o.option?.name || o.option) === optName && o.value === val)
+      )
+    );
+  }, [variants, selectedOptions]);
+
+  // Handle stock boundary logic directly mapped to active variants
+  useEffect(() => {
+    if (!selectedVariant || selectedVariant.stock === 0) {
+      setQuantity(1);
+    } else if (quantity > selectedVariant.stock) {
+      setQuantity(selectedVariant.stock);
+    }
+  }, [selectedVariant, quantity]);
 
   const handleOptionSelect = (optName, valName) => {
     setSelectedOptions(prev => ({ ...prev, [optName]: valName }));
@@ -71,8 +87,8 @@ export default function ProductDetailPage() {
   };
   
   const handleIncQty = () => {
-    if (!currentVariant) return;
-    setQuantity(q => Math.min(currentVariant.stock, q + 1));
+    if (!selectedVariant) return;
+    setQuantity(q => Math.min(selectedVariant.stock, q + 1));
   };
 
   const formatPrice = (price) => {
@@ -83,16 +99,63 @@ export default function ProductDetailPage() {
     }).format(price || 0);
   };
 
-  // Determine price display
+  // Determine pricing UI
   const priceDisplay = useMemo(() => {
-    if (currentVariant) {
-      return formatPrice(currentVariant.price);
+    if (selectedVariant) {
+      return formatPrice(selectedVariant.price);
     }
-    // Variant doesn't exist
     return 'Unavailable';
-  }, [currentVariant]);
+  }, [selectedVariant]);
 
-  const inStock = currentVariant && currentVariant.stock > 0;
+  const inStock = selectedVariant && selectedVariant.stock > 0;
+
+  const handleAddToCart = () => {
+    if (!selectedVariant || !product) return;
+    addItem(product, selectedVariant, selectedOptions, quantity);
+    alert('Added to cart!');
+  };
+
+  // UI STATE: Loading Skeleton Hook
+  if (loading) {
+    return (
+      <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '64px' }}>
+        <div 
+          style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 24px' }}
+          className="cz-pdp-container animate-pulse"
+        >
+          <div style={{ width: '100%', aspectRatio: '1/1', backgroundColor: '#E5E7EB', borderRadius: '16px' }}></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ width: '60%', height: '40px', backgroundColor: '#E5E7EB', borderRadius: '8px' }}></div>
+            <div style={{ width: '40%', height: '30px', backgroundColor: '#E5E7EB', borderRadius: '8px' }}></div>
+            <div style={{ width: '100%', height: '200px', backgroundColor: '#E5E7EB', borderRadius: '16px' }}></div>
+          </div>
+        </div>
+        <style>{`
+          .cz-pdp-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+          }
+          @media (max-width: 768px) {
+            .cz-pdp-container {
+              grid-template-columns: 1fr;
+              gap: 32px;
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // UI STATE: 404 Missing
+  if (!product) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-4 min-h-screen bg-white">
+        <h1 className="text-[20px] font-[600] text-[#0F172A] mb-2">Product Not Found</h1>
+        <Link href="/store" className="text-[#0057A8] hover:underline">Return to Store</Link>
+      </div>
+    );
+  }
 
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '64px' }}>
@@ -121,42 +184,46 @@ export default function ProductDetailPage() {
               overflow: 'hidden'
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src={mockProduct.images[activeImageIdx]} 
-              alt={mockProduct.name}
-              style={{ width: '80%', height: '80%', objectFit: 'contain' }}
-            />
+            {product.images && product.images.length > 0 ? (
+              <img 
+                src={product.images[activeImageIdx] || product.images[0]} 
+                alt={product.name}
+                style={{ width: '80%', height: '80%', objectFit: 'contain' }}
+              />
+            ) : (
+              <div style={{ color: '#9CA3AF' }}>No Image</div>
+            )}
           </div>
 
           {/* Thumbnails */}
-          <div style={{ display: 'flex', gap: '12px' }}>
-            {mockProduct.images.map((img, idx) => {
-              const isActive = idx === activeImageIdx;
-              return (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImageIdx(idx)}
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '8px',
-                    border: isActive ? '2px solid #0057A8' : '2px solid transparent',
-                    backgroundColor: '#F0F4F8',
-                    cursor: 'pointer',
-                    padding: '4px',
-                    transition: 'border-color 0.2s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={img} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }} />
-                </button>
-              );
-            })}
-          </div>
+          {(product.images && product.images.length > 1) && (
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {product.images.map((img, idx) => {
+                const isActive = idx === activeImageIdx;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImageIdx(idx)}
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '8px',
+                      border: isActive ? '2px solid #0057A8' : '2px solid transparent',
+                      backgroundColor: '#F0F4F8',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      transition: 'border-color 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <img src={img} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── RIGHT: Product Info ── */}
@@ -165,12 +232,16 @@ export default function ProductDetailPage() {
           {/* Breadcrumb */}
           <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '16px' }}>
             <Link href="/store" style={{ color: '#6B7280', textDecoration: 'none' }}>Store</Link>
+            {product.category && (
+              <>
+                <span style={{ margin: '0 8px' }}>&rarr;</span>
+                <Link href={`/store/c/${product.category.toLowerCase()}`} style={{ color: '#6B7280', textDecoration: 'none' }}>
+                  {product.category}
+                </Link>
+              </>
+            )}
             <span style={{ margin: '0 8px' }}>&rarr;</span>
-            <Link href={`/store/c/${mockProduct.category.toLowerCase()}`} style={{ color: '#6B7280', textDecoration: 'none' }}>
-              {mockProduct.category}
-            </Link>
-            <span style={{ margin: '0 8px' }}>&rarr;</span>
-            <span style={{ color: '#0F172A', fontWeight: 500 }}>{mockProduct.name}</span>
+            <span style={{ color: '#0F172A', fontWeight: 500 }}>{product.name}</span>
           </div>
 
           {/* Title & Brand */}
@@ -185,12 +256,12 @@ export default function ProductDetailPage() {
                 borderRadius: '50px' 
               }}
             >
-              {mockProduct.brand}
+              {product.brand}
             </span>
           </div>
           
           <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#0F172A', margin: '0 0 12px 0' }}>
-            {mockProduct.name}
+            {product.name}
           </h1>
 
           {/* Price */}
@@ -202,18 +273,18 @@ export default function ProductDetailPage() {
 
           {/* Variants */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '24px' }}>
-            {mockProduct.options.map(opt => (
-              <div key={opt.name}>
+            {Object.entries(optionsMap).map(([optName, values]) => (
+              <div key={optName}>
                 <label style={{ fontSize: '13px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '12px' }}>
-                  {opt.name}
+                  {optName}
                 </label>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  {opt.values.map(val => {
-                    const isSelected = selectedOptions[opt.name] === val;
+                  {values.map(val => {
+                    const isSelected = selectedOptions[optName] === val;
                     return (
                       <button
                         key={val}
-                        onClick={() => handleOptionSelect(opt.name, val)}
+                        onClick={() => handleOptionSelect(optName, val)}
                         style={{
                           backgroundColor: isSelected ? '#0057A8' : '#ffffff',
                           color: isSelected ? '#ffffff' : '#374151',
@@ -237,20 +308,20 @@ export default function ProductDetailPage() {
 
           {/* Stock Indicator */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-            {(!currentVariant) ? (
+            {(!selectedVariant) ? (
                <>
                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EF4444' }}></span>
                  <span style={{ fontSize: '14px', color: '#EF4444', fontWeight: 500 }}>Unavailable</span>
                </>
-            ) : currentVariant.stock > 10 ? (
+            ) : selectedVariant.stock > 10 ? (
               <>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
                 <span style={{ fontSize: '14px', color: '#10B981', fontWeight: 500 }}>In Stock</span>
               </>
-            ) : currentVariant.stock > 0 ? (
+            ) : selectedVariant.stock > 0 ? (
               <>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F59E0B' }}></span>
-                <span style={{ fontSize: '14px', color: '#F59E0B', fontWeight: 500 }}>Only {currentVariant.stock} left</span>
+                <span style={{ fontSize: '14px', color: '#F59E0B', fontWeight: 500 }}>Only {selectedVariant.stock} left</span>
               </>
             ) : (
               <>
@@ -286,13 +357,14 @@ export default function ProductDetailPage() {
               />
               <button 
                 onClick={handleIncQty}
-                disabled={!inStock || quantity >= (currentVariant?.stock || 0)}
-                style={{ width: '40px', height: '100%', background: 'none', border: 'none', fontSize: '18px', cursor: (!inStock || quantity >= (currentVariant?.stock || 0)) ? 'not-allowed' : 'pointer', color: '#374151' }}
+                disabled={!inStock || quantity >= (selectedVariant?.stock || 0)}
+                style={{ width: '40px', height: '100%', background: 'none', border: 'none', fontSize: '18px', cursor: (!inStock || quantity >= (selectedVariant?.stock || 0)) ? 'not-allowed' : 'pointer', color: '#374151' }}
               >+</button>
             </div>
 
             {/* Add to Cart */}
             <button
+              onClick={handleAddToCart}
               disabled={!inStock}
               style={{
                 flex: 1,
@@ -315,7 +387,7 @@ export default function ProductDetailPage() {
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#0F172A', marginBottom: '8px' }}>Description</h3>
             <p style={{ fontSize: '15px', color: '#6B7280', lineHeight: 1.6, margin: 0 }}>
-              {mockProduct.description}
+              {product.description}
             </p>
           </div>
 
