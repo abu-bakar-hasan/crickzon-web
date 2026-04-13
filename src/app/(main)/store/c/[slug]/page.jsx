@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 import ProductCard from '@/components/ui/ProductCard';
+import api from '@/lib/axios';
 
 // Helper to format slug to Title Case
 function formatTitle(slug) {
@@ -16,23 +16,23 @@ function formatTitle(slug) {
 
 const BRANDS = ['SS', 'MRF', 'SG', 'Kookaburra', 'Gray-Nicolls'];
 
-// Mock data generator for 9 products
-const MOCK_PRODUCTS = Array.from({ length: 9 }).map((_, i) => ({
-  id: `prod-${i}`,
-  name: `Premium Cricket Gear ${i + 1}`,
-  brand: BRANDS[i % BRANDS.length],
-  minPrice: 1500 + i * 500,
-  maxPrice: 1500 + i * 500,
-  slug: `premium-cricket-gear-${i + 1}`,
-  images: ['https://ik.imagekit.io/crickzon/mrf-genius_dSGO-OAk-.webp'],
-}));
-
-export default function CategoryPage() {
-  const params = useParams();
-  const slug = params?.slug || '';
+export default function CategoryPage(props) {
+  // Using Next.js 15 unwrapping standard as prompted
+  const params = use(props.params);
+  const slug = params.slug;
   const categoryTitle = formatTitle(slug);
 
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    api.get(`/products?category=${slug}`)
+      .then(res => setProducts(res.data.products || res.data || []))
+      .catch(err => console.error("Error fetching category products", err))
+      .finally(() => setLoading(false));
+  }, [slug]);
 
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '64px' }}>
@@ -172,13 +172,12 @@ export default function CategoryPage() {
                   </select>
                 </div>
 
-                {/* Show Results Button */}
                 <button 
                   className="cz-apply-btn" 
                   style={{ marginTop: '16px', padding: '14px 0', fontSize: '15px' }}
                   onClick={() => setMobileFilterOpen(false)}
                 >
-                  Show 24 Products
+                  Show {products.length} Products
                 </button>
               </div>
             </div>
@@ -201,7 +200,9 @@ export default function CategoryPage() {
                 <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>
                   {categoryTitle || 'Products'}
                 </h1>
-                <span style={{ fontSize: '13px', color: '#6B7280' }}>24 Products</span>
+                <span style={{ fontSize: '13px', color: '#6B7280' }}>
+                  {loading ? 'Loading...' : `${products.length} Products`}
+                </span>
               </div>
 
               {/* Mobile Filter Trigger */}
@@ -214,33 +215,55 @@ export default function CategoryPage() {
             </div>
           </div>
 
-          <div className="cz-product-list-grid">
-            {MOCK_PRODUCTS.map((prod) => (
-              <ProductCard
-                key={prod.id}
-                name={prod.name}
-                brand={prod.brand}
-                images={prod.images}
-                minPrice={prod.minPrice}
-                maxPrice={prod.maxPrice}
-                slug={prod.slug}
-              />
-            ))}
-          </div>
+          {loading ? (
+             <div className="cz-product-list-grid">
+               {Array.from({ length: 6 }).map((_, idx) => (
+                 <div key={idx} className="bg-white border border-[#E5E7EB] rounded-[16px] overflow-hidden flex flex-col">
+                   <div className="w-full h-[200px] bg-gray-200 animate-pulse"></div>
+                   <div className="p-4 flex flex-col gap-4">
+                      <div className="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2"></div>
+                      <div className="h-5 bg-gray-200 animate-pulse rounded w-2/5 my-2"></div>
+                      <div className="h-10 bg-gray-200 animate-pulse rounded-lg w-full"></div>
+                   </div>
+                 </div>
+               ))}
+             </div>
+          ) : products.length === 0 ? (
+             <div className="flex flex-col items-center justify-center py-20 text-center">
+               <div className="text-[48px] mb-4">🏏</div>
+               <h3 className="text-xl font-bold text-gray-800">No products found</h3>
+               <p className="text-gray-500 mt-2">Check back later for more gear arriving soon!</p>
+             </div>
+          ) : (
+            <div className="cz-product-list-grid">
+              {products.map((prod) => (
+                <ProductCard
+                  key={prod._id || prod.slug}
+                  productId={prod._id}
+                  name={prod.name}
+                  brand={prod.brand}
+                  images={prod.images}
+                  minPrice={prod.minPrice || prod.price}
+                  maxPrice={prod.maxPrice || prod.price}
+                  slug={prod.slug}
+                  variants={prod.variants}
+                />
+              ))}
+            </div>
+          )}
 
         </main>
       </div>
 
       <style>{`
-        /* Sidebar container */
         .cz-sidebar {
           width: 240px;
           flex-shrink: 0;
           position: sticky;
-          top: 88px; /* 64px navbar + some padding */
+          top: 88px;
         }
 
-        /* Inputs & Selects */
         .cz-input, .cz-select {
           width: 100%;
           height: 36px;
@@ -260,7 +283,6 @@ export default function CategoryPage() {
         .cz-input { padding: 0 8px; }
         .cz-select { padding: 0 12px; cursor: pointer; }
 
-        /* Buttons */
         .cz-apply-btn {
           width: 100%;
           background-color: #0057A8;
@@ -278,14 +300,12 @@ export default function CategoryPage() {
           background-color: #004485;
         }
 
-        /* Desktop Grid */
         .cz-product-list-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 20px;
         }
 
-        /* Mobile specific elements hidden on desktop */
         .cz-mobile-filter-btn {
           display: none;
           border: 1px solid #E5E7EB;
@@ -312,7 +332,6 @@ export default function CategoryPage() {
           }
         }
 
-        /* Mobile Bottom Sheet */
         .cz-mobile-sheet-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;

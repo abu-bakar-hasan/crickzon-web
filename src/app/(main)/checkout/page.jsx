@@ -1,49 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-// Mock Data
-const mockCart = [
-  { 
-    id: 1, 
-    name: "SS Ton Elite Bat", 
-    variant: "1.1kg / English Willow", 
-    price: 3999, 
-    quantity: 1, 
-    image: "https://ik.imagekit.io/crickzon/product4.png" 
-  },
-  { 
-    id: 2, 
-    name: "MRF Genius Bat", 
-    variant: "1.2kg / Kashmir Willow", 
-    price: 2799, 
-    quantity: 2, 
-    image: "https://ik.imagekit.io/crickzon/product4.png" 
-  }
-];
+import useCartStore from '@/store/cartStore';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
+import api from '@/lib/axios';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { items, getTotalPrice, clearCart } = useCartStore();
+  const { showToast } = useToast();
+  const { user } = useAuth();
+  
   const [loading, setLoading] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const [formData, setFormData] = useState({
-    fullName: '',
+    fullName: user?.name || '',
     phone: '',
     street: '',
     city: '',
     state: '',
     pincode: '',
+    label: 'Home',
     saveAddress: false,
   });
 
   const [errors, setErrors] = useState({});
 
-  const subtotal = mockCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shipping = subtotal > 999 ? 0 : 99;
+  useEffect(() => {
+    // Guards preventing anonymous/empty checkouts routing natively
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (items.length === 0) {
+      router.push('/cart');
+      return;
+    }
+
+    // Unpack local profiles mapped against accounts for instant auto-filling capabilities
+    api.get('/auth/addresses')
+      .then(res => setSavedAddresses(res.data.addresses || res.data || []))
+      .catch(err => console.error(err));
+  }, [user, items.length, router]);
+
+  const subtotal = getTotalPrice();
+  const shipping = subtotal >= 999 ? 0 : 99;
   const total = subtotal + shipping;
 
-  const formatCurrency = (amount) => `₹${amount.toLocaleString('en-IN')}`;
+  const formatCurrency = (amount) => `₹${Number(amount || 0).toLocaleString('en-IN')}`;
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -54,6 +62,29 @@ export default function CheckoutPage() {
     
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleAddressSelect = (e) => {
+    const addrId = e.target.value;
+    if (!addrId) {
+      // Clear specific mapped fields to allow raw user input again seamlessly
+      setFormData(prev => ({
+        ...prev, street: '', city: '', state: '', pincode: '', saveAddress: false
+      }));
+      return;
+    }
+    const addr = savedAddresses.find(a => a._id === addrId);
+    if (addr) {
+      setFormData(prev => ({
+        ...prev,
+        label: addr.label || 'Home',
+        street: addr.street || '',
+        city: addr.city || '',
+        state: addr.state || '',
+        pincode: addr.pincode || '',
+        saveAddress: false // It exists so we disable duplicate payload posts
+      }));
     }
   };
 
@@ -81,23 +112,62 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setLoading(true);
+    setErrorMsg('');
+    try {
+      const orderItems = items.map(item => ({
+        product: item.productId,
+        variant: item.variantId,
+        quantity: item.quantity
+      }));
 
-    // Simulate API call and redirect
-    setTimeout(() => {
+      // In case user explicitly checked "Save this new address", fire off payload immediately ignoring response blocking
+      if (formData.saveAddress) {
+        api.post('/auth/addresses', {
+          label: formData.label,
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          isDefault: true
+        }).catch(e => console.error("Optional Address creation silenced", e));
+      }
+
+      // Block checkout logic until successful REST mapping resolves natively
+      await api.post('/orders', {
+        items: orderItems,
+        address: {
+          label: formData.label || 'Home',
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode
+        }
+      });
+
+      clearCart();
+      showToast('Order placed successfully!', 'success');
+      router.push('/account');
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Failed to place order');
+    } finally {
       setLoading(false);
-      router.push('/account?order=success');
-    }, 1500);
+    }
   };
+
+  // Prevent UI rendering jumps while native hooks parse redirects out
+  if (!user || items.length === 0) {
+    return <div className="min-h-screen bg-[#F8FAFC]"></div>; 
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-8 lg:py-12">
       <div className="max-w-[1240px] mx-auto px-4 lg:px-8">
-        <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-8">
+        <form onSubmit={handlePlaceOrder} className="flex flex-col lg:flex-row gap-8">
           
           {/* Left - Delivery & Payment (60%) */}
           <div className="w-full lg:w-[60%] flex flex-col gap-6">
@@ -106,6 +176,24 @@ export default function CheckoutPage() {
             <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-[24px]">
               <h2 className="text-[16px] font-[600] text-[#0F172A] mb-6">Delivery Address</h2>
               
+              {/* Dynamic Saved Address Dropdown Array injection per prompt rules */}
+              {savedAddresses.length > 0 && (
+                <div className="mb-6 pb-6 border-b border-[#E5E7EB]">
+                  <label className="text-[13px] font-[500] text-[#374151] block mb-2">Select a Saved Address</label>
+                  <select 
+                    onChange={handleAddressSelect}
+                    className="w-full h-[44px] rounded-[10px] border border-[#E5E7EB] px-4 outline-none focus:border-[#0057A8] text-[15px] bg-white cursor-pointer"
+                  >
+                    <option value="">-- Manual Entry --</option>
+                    {savedAddresses.map(addr => (
+                      <option key={addr._id} value={addr._id}>
+                        {addr.label} - {addr.street}, {addr.city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="flex flex-col gap-4">
                 {/* Full Name */}
                 <div className="flex flex-col gap-1.5">
@@ -198,7 +286,7 @@ export default function CheckoutPage() {
                   {errors.pincode && <span className="text-red-500 text-[13px]">{errors.pincode}</span>}
                 </div>
 
-                {/* Save Address */}
+                {/* Save Address check input natively tied inline mapping */}
                 <label className="flex items-center gap-2 mt-2 cursor-pointer w-fit">
                   <input
                     type="checkbox"
@@ -207,7 +295,7 @@ export default function CheckoutPage() {
                     onChange={handleInputChange}
                     className="w-[16px] h-[16px] rounded-[4px] border-[#E5E7EB] text-[#0057A8] focus:ring-[#0057A8] cursor-pointer"
                   />
-                  <span className="text-[13px] text-[#374151]">Save this address</span>
+                  <span className="text-[13px] text-[#374151]">Save this address for future checkouts</span>
                 </label>
               </div>
             </div>
@@ -217,11 +305,8 @@ export default function CheckoutPage() {
               <h2 className="text-[16px] font-[600] text-[#0F172A] mb-6">Payment Method</h2>
               
               <div className="border-[2px] border-[#0057A8] rounded-[12px] p-[16px] bg-[#F8FAFC] flex items-center gap-4 cursor-pointer">
-                {/* Custom Radio Button */}
                 <div className="flex-shrink-0 w-[20px] h-[20px] rounded-full border-[6px] border-[#0057A8] bg-white"></div>
-                
                 <div className="text-[24px] leading-none">💵</div>
-                
                 <div className="flex-1">
                   <p className="text-[15px] font-[600] text-[#0F172A]">Cash on Delivery</p>
                   <p className="text-[13px] text-[#6B7280]">Pay when your order arrives</p>
@@ -236,31 +321,42 @@ export default function CheckoutPage() {
             <div className="sticky top-[80px] bg-white border border-[#E5E7EB] rounded-[16px] p-[24px]">
               <h2 className="text-[16px] font-[600] text-[#0F172A] mb-6">Order Summary</h2>
               
-              {/* Items List */}
+              {/* Items List directly referencing useCartStore state array */}
               <div className="flex flex-col gap-4 mb-6">
-                {mockCart.map((item) => (
-                  <div key={item.id} className="flex gap-4">
-                    {/* Using standard img for external ImageKit mock data */}
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
-                      className="w-[48px] h-[48px] rounded-[8px] bg-[#F0F4F8] object-cover flex-shrink-0"
-                    />
+                {items.map((item) => {
+                  const variantInfo = typeof item.selectedOptions === 'object' && item.selectedOptions
+                        ? Object.entries(item.selectedOptions).map(([k,v]) => `${k}: ${v}`).join(' / ')
+                        : '';
+                  return (
+                  <div key={item.variantId} className="flex gap-4">
+                    {/* Image bindings safely falling back */}
+                    {item.image ? (
+                      <img 
+                        src={item.image} 
+                        alt={item.name} 
+                        className="w-[48px] h-[48px] rounded-[8px] bg-[#F0F4F8] object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-[48px] h-[48px] rounded-[8px] bg-[#E5E7EB] flex-shrink-0"></div>
+                    )}
                     
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-[14px] font-[600] text-[#0F172A] truncate">{item.name}</h3>
-                      <p className="text-[12px] text-[#6B7280] truncate">{item.variant}</p>
+                      <h3 className="text-[14px] font-[600] text-[#0F172A] truncate">
+                        {item.brand ? `${item.brand} ` : ''}{item.name}
+                      </h3>
+                      {variantInfo && <p className="text-[12px] text-[#6B7280] truncate">{variantInfo}</p>}
                     </div>
                     
                     <div className="text-right flex-shrink-0">
-                      <p className="text-[14px] font-[600] text-[#0057A8]">{formatCurrency(item.price)}</p>
+                      {/* Multiplication bindings mapping prices resolving arrays */}
+                      <p className="text-[14px] font-[600] text-[#0057A8]">{formatCurrency(item.price * item.quantity)}</p>
                       <p className="text-[12px] text-[#6B7280]">Qty: {item.quantity}</p>
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
 
-              {/* Totals Calculation */}
+              {/* Totals Calculation resolved through Zustand */}
               <div className="border-t border-[#E5E7EB] pt-4 flex flex-col gap-4">
                 <div className="flex justify-between items-center text-[14px] text-[#6B7280]">
                   <span>Subtotal</span>
@@ -282,11 +378,18 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* CTA */}
+              {/* Error Output Catch Block */}
+              {errorMsg && (
+                <div className="mt-4 p-3 bg-red-50 text-red-600 text-[13px] font-[500] rounded-lg">
+                  {errorMsg}
+                </div>
+              )}
+
+              {/* CTA blocking sequence on pending REST post */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-8 h-[52px] rounded-[12px] bg-[#0057A8] text-white text-[16px] font-[600] flex items-center justify-center hover:bg-[#004a8f] transition-colors disabled:opacity-80 disabled:cursor-wait"
+                className="w-full mt-6 h-[52px] rounded-[12px] bg-[#0057A8] text-white text-[16px] font-[600] flex items-center justify-center hover:bg-[#004a8f] transition-colors disabled:opacity-80 disabled:cursor-wait"
               >
                 {loading ? (
                   <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

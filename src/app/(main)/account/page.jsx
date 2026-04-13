@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import api from '@/lib/axios';
 
 export default function AccountPage() {
   const { user, logout } = useAuth();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('orders');
   
   // Orders State
@@ -16,7 +18,6 @@ export default function AccountPage() {
   // Profile State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editProfileData, setEditProfileData] = useState({ name: '', email: '' });
-  const [profileMessage, setProfileMessage] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
 
   // Addresses State
@@ -82,12 +83,11 @@ export default function AccountPage() {
       user.name = editProfileData.name;
       user.email = editProfileData.email;
       
-      setProfileMessage('Profile updated successfully!');
+      showToast('Profile updated', 'success');
       setIsEditingProfile(false);
-      setTimeout(() => setProfileMessage(''), 3000);
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || 'Failed to update profile');
+      showToast(err.response?.data?.message || 'Failed to update profile', 'error');
     } finally {
       setSavingProfile(false);
     }
@@ -131,9 +131,10 @@ export default function AccountPage() {
       setShowAddressForm(false);
       setEditingAddressId(null);
       setAddressForm({ label: 'Home', street: '', city: '', state: '', pincode: '', isDefault: false });
+      showToast('Address saved', 'success');
     } catch (err) {
       console.error(err);
-      alert('Failed to save address');
+      showToast('Failed to save address', 'error');
     } finally {
       setSavingAddress(false);
     }
@@ -144,9 +145,10 @@ export default function AccountPage() {
       const res = await api.delete(`/auth/addresses/${id}`);
       setAddresses(res.data.addresses);
       setDeletingAddressId(null);
+      showToast('Address deleted', 'success');
     } catch (err) {
       console.error(err);
-      alert('Failed to delete address');
+      showToast('Failed to delete address', 'error');
     }
   };
 
@@ -297,11 +299,6 @@ export default function AccountPage() {
             <div>
               <div className="flex items-center gap-4 mb-6">
                 <h1 className="text-[20px] font-[700] text-[#0F172A]">My Profile</h1>
-                {profileMessage && (
-                  <span className="bg-green-100 text-green-700 px-3 py-1 text-[13px] font-[500] rounded-full animate-fade-in">
-                    {profileMessage}
-                  </span>
-                )}
               </div>
               
               {!isEditingProfile ? (

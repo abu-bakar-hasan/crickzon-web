@@ -1,22 +1,43 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import useCartStore from '@/store/cartStore';
+import { useToast } from '@/context/ToastContext';
 
-export default function ProductCard({ name, brand, images, minPrice, maxPrice, slug }) {
-  // Use the first image if available, else a placeholder
+export default function ProductCard({ productId, name, brand, images, minPrice, maxPrice, slug, variants }) {
+  const router = useRouter();
+  const { addItem } = useCartStore();
+  const { showToast } = useToast();
+
   const imageUrl = images && images.length > 0 ? images[0] : 'https://placehold.co/400x400/eeeeee/aaaaaa?text=Image';
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(price || 0);
-  };
+  const formatPrice = (price) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(price || 0);
 
-  const displayPrice = minPrice === maxPrice 
-    ? formatPrice(minPrice) 
-    : `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`;
+  const displayPrice =
+    minPrice === maxPrice ? formatPrice(minPrice) : `${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`;
+
+  const isSingleVariant = variants?.length === 1;
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isSingleVariant) {
+      router.push(`/store/${slug}`);
+      return;
+    }
+
+    const variant = variants[0];
+    addItem(
+      { _id: productId, name, brand, images, slug },
+      { _id: variant._id, price: variant.price, stock: variant.stock },
+      {},
+      1
+    );
+    showToast('Added to cart!', 'success');
+  };
 
   return (
     <div
@@ -48,18 +69,14 @@ export default function ProductCard({ name, brand, images, minPrice, maxPrice, s
           <img
             src={imageUrl}
             alt={name || 'Product Image'}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         </div>
 
         {/* Content Body */}
         <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
           <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '16px', flex: 1 }}>
-             <h3
+            <h3
               style={{
                 fontSize: '14px',
                 fontWeight: 600,
@@ -78,20 +95,9 @@ export default function ProductCard({ name, brand, images, minPrice, maxPrice, s
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-             <span
-              style={{
-                fontSize: '15px',
-                fontWeight: 600,
-                color: '#0057A8',
-              }}
-            >
-              {displayPrice}
-            </span>
-             <button
-              onClick={(e) => {
-                e.preventDefault(); // Prevent navigating if 'Add to Cart' is clicked directly
-                console.log('Add to cart clicked');
-              }}
+            <span style={{ fontSize: '15px', fontWeight: 600, color: '#0057A8' }}>{displayPrice}</span>
+            <button
+              onClick={handleAddToCart}
               style={{
                 width: '100%',
                 backgroundColor: '#0057A8',
@@ -106,12 +112,12 @@ export default function ProductCard({ name, brand, images, minPrice, maxPrice, s
               }}
               className="cz-add-to-cart-btn"
             >
-              Add to Cart
+              {isSingleVariant ? 'Add to Cart' : 'Select Options'}
             </button>
           </div>
         </div>
       </Link>
-      
+
       <style>{`
         .cz-product-card:hover {
           transform: translateY(-4px);

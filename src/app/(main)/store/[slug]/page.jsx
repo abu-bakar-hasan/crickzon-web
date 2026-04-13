@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import api from '@/lib/axios';
 import useCartStore from '@/store/cartStore';
+import { useToast } from '@/context/ToastContext';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -14,6 +15,7 @@ export default function ProductDetailPage() {
   const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addItem } = useCartStore();
+  const { showToast } = useToast();
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState({});
@@ -110,9 +112,13 @@ export default function ProductDetailPage() {
   const inStock = selectedVariant && selectedVariant.stock > 0;
 
   const handleAddToCart = () => {
-    if (!selectedVariant || !product) return;
+    if (!selectedVariant) {
+      showToast('Please select all options', 'warning');
+      return;
+    }
+    if (!product) return;
     addItem(product, selectedVariant, selectedOptions, quantity);
-    alert('Added to cart!');
+    showToast('Added to cart!', 'success');
   };
 
   // UI STATE: Loading Skeleton Hook

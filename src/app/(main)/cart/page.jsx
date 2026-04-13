@@ -4,10 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import useCartStore from '@/store/cartStore';
+import { useToast } from '@/context/ToastContext';
 
 export default function CartPage() {
   const router = useRouter();
   const { items, removeItem, updateQuantity, getTotalPrice, getTotalItems } = useCartStore();
+  const { showToast } = useToast();
 
   const totalItems = getTotalItems();
   const subtotal = getTotalPrice();
@@ -103,7 +105,10 @@ export default function CartPage() {
 
                       {/* Remove Button */}
                       <button 
-                        onClick={() => removeItem(item.variantId)}
+                        onClick={() => {
+                          removeItem(item.variantId);
+                          showToast('Item removed', 'info');
+                        }}
                         className="w-[36px] h-[36px] flex items-center justify-center rounded-full text-[#EF4444] hover:bg-[#FEE2E2] transition-colors"
                         aria-label="Remove item"
                       >

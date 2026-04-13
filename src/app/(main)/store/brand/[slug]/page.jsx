@@ -1,94 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 import ProductCard from '@/components/ui/ProductCard';
+import api from '@/lib/axios';
 
-const TABS = ["All", "Bats", "Balls", "Protective Gear", "Footwear", "Accessories"];
+const TABS = ["All", "Bats", "Balls", "Protective Gear", "Footwear", "Accessories", "Jerseys"];
 
-function formatTitle(slug) {
-  if (!slug) return '';
-  return slug
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
-export default function BrandPage() {
-  const params = useParams();
-  const slug = params?.slug || '';
-  const brandName = formatTitle(slug) || 'Brand';
+export default function BrandPage(props) {
+  // Unwrapping params sequentially via React's newest `use()` hook standards
+  const params = use(props.params);
+  const slug = params.slug || '';
+  const brandName = slug.replace(/-/g, ' ').toUpperCase();
   
   const [activeTab, setActiveTab] = useState('All');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Generate 6 mock products specifically to match testing categories
-  const MOCK_PRODUCTS = [
-    { 
-      id: '1', 
-      category: 'Bats', 
-      name: `${brandName} Elite Bat`, 
-      brand: brandName, 
-      minPrice: 15000, 
-      maxPrice: 15000, 
-      slug: 'elite-bat', 
-      images: ['https://ik.imagekit.io/crickzon/product4.png'] 
-    },
-    { 
-      id: '2', 
-      category: 'Bats', 
-      name: `${brandName} Master Bat`, 
-      brand: brandName, 
-      minPrice: 12000, 
-      maxPrice: 12000, 
-      slug: 'master-bat', 
-      images: ['https://ik.imagekit.io/crickzon/product4.png'] 
-    },
-    { 
-      id: '3', 
-      category: 'Balls', 
-      name: `${brandName} Pro Turf Ball`, 
-      brand: brandName, 
-      minPrice: 1500, 
-      maxPrice: 1500, 
-      slug: 'pro-ball', 
-      images: ['https://ik.imagekit.io/crickzon/product4.png'] 
-    },
-    { 
-      id: '4', 
-      category: 'Protective Gear', 
-      name: `${brandName} Test Match Pads`, 
-      brand: brandName, 
-      minPrice: 4500, 
-      maxPrice: 4500, 
-      slug: 'test-pads', 
-      images: ['https://ik.imagekit.io/crickzon/product4.png'] 
-    },
-    { 
-      id: '5', 
-      category: 'Footwear', 
-      name: `${brandName} Pro Spikes`, 
-      brand: brandName, 
-      minPrice: 6000, 
-      maxPrice: 6000, 
-      slug: 'pro-spikes', 
-      images: ['https://ik.imagekit.io/crickzon/product4.png'] 
-    },
-    { 
-      id: '6', 
-      category: 'Accessories', 
-      name: `${brandName} Premium Grip`, 
-      brand: brandName, 
-      minPrice: 300, 
-      maxPrice: 300, 
-      slug: 'premium-grip', 
-      images: ['https://ik.imagekit.io/crickzon/product4.png'] 
-    }
-  ];
+  useEffect(() => {
+    setLoading(true);
+    api.get(`/products?brand=${brandName}`)
+      .then(res => setProducts(res.data.products || res.data || []))
+      .catch(err => console.error("Error fetching brand products", err))
+      .finally(() => setLoading(false));
+  }, [brandName]);
 
+  // Robustly filter category maps checking whether standard strings or populated documents are mapped internally
   const filteredProducts = activeTab === 'All' 
-    ? MOCK_PRODUCTS 
-    : MOCK_PRODUCTS.filter(p => p.category === activeTab);
+    ? products 
+    : products.filter(p => {
+        const catName = (p.category?.name || p.category || '').toLowerCase();
+        return catName === activeTab.toLowerCase();
+      });
 
   return (
     <div className="min-h-screen bg-white pb-16">
@@ -116,7 +59,7 @@ export default function BrandPage() {
           </div>
           
           <div className="bg-[#0057A8] text-white px-5 py-2 rounded-full text-[14px] font-[600] flex-shrink-0 shadow-sm">
-            {MOCK_PRODUCTS.length} Products
+            {loading ? '...' : products.length} Products
           </div>
         </div>
 
@@ -138,7 +81,21 @@ export default function BrandPage() {
         </div>
 
         {/* Product Grid */}
-        {filteredProducts.length === 0 ? (
+        {loading ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {Array.from({ length: 6 }).map((_, idx) => (
+                 <div key={idx} className="bg-white border border-[#E5E7EB] rounded-[16px] overflow-hidden flex flex-col">
+                   <div className="w-full h-[200px] bg-gray-200 animate-pulse"></div>
+                   <div className="p-4 flex flex-col gap-4">
+                      <div className="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2"></div>
+                      <div className="h-5 bg-gray-200 animate-pulse rounded w-2/5 my-2"></div>
+                      <div className="h-10 bg-gray-200 animate-pulse rounded-lg w-full"></div>
+                   </div>
+                 </div>
+               ))}
+             </div>
+        ) : filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-[#E5E7EB] rounded-[16px] bg-gray-50/50">
             <div className="text-[48px] mb-4 opacity-80">🏏</div>
             <p className="text-[16px] font-[600] text-[#0F172A] mb-2">No products in this category</p>
@@ -148,13 +105,15 @@ export default function BrandPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map(prod => (
               <ProductCard
-                key={prod.id}
+                key={prod._id || prod.slug}
+                productId={prod._id}
                 name={prod.name}
                 brand={prod.brand}
                 images={prod.images}
-                minPrice={prod.minPrice}
-                maxPrice={prod.maxPrice}
+                minPrice={prod.minPrice || prod.price}
+                maxPrice={prod.maxPrice || prod.price}
                 slug={prod.slug}
+                variants={prod.variants}
               />
             ))}
           </div>

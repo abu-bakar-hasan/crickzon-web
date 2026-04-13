@@ -1,10 +1,9 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import ProductCard from '@/components/ui/ProductCard';
+'use client';
 
-export const metadata = {
-  title: 'Crickzon - Where Skill Meets Power',
-};
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import ProductCard from '@/components/ui/ProductCard';
+import api from '@/lib/axios';
 
 const CATEGORIES = [
   { name: 'Bats', icon: '🏏', slug: 'bats' },
@@ -14,45 +13,15 @@ const CATEGORIES = [
 ];
 
 export default function LandingPage() {
-  // Temporary mock data for New Arrivals (until API is connected)
-  const mockProducts = [
-    {
-      id: '1',
-      name: 'Pro Series English Willow Bat',
-      brand: 'Crickzon Exclusive',
-      minPrice: 12999,
-      maxPrice: 12999,
-      slug: 'pro-series-english-willow',
-      images: ['https://ik.imagekit.io/crickzon/mrf-genius_dSGO-OAk-.webp'], // Add real mock if available
-    },
-    {
-      id: '2',
-      name: 'Premium Leather Cricket Ball',
-      brand: 'Crickzon',
-      minPrice: 499,
-      maxPrice: 499,
-      slug: 'premium-leather-ball',
-      images: ['https://ik.imagekit.io/crickzon/mrf-genius_dSGO-OAk-.webp'],
-    },
-    {
-      id: '3',
-      name: 'Pro Batting Gloves',
-      brand: 'Crickzon',
-      minPrice: 1499,
-      maxPrice: 1499,
-      slug: 'pro-batting-gloves',
-      images: ['https://ik.imagekit.io/crickzon/mrf-genius_dSGO-OAk-.webp'],
-    },
-    {
-      id: '4',
-      name: 'All-Terrain Cricket Spikes',
-      brand: 'Crickzon Sports',
-      minPrice: 3499,
-      maxPrice: 3499,
-      slug: 'all-terrain-spikes',
-      images: ['https://ik.imagekit.io/crickzon/mrf-genius_dSGO-OAk-.webp'],
-    },
-  ];
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/products?limit=4')
+      .then(res => setProducts(res.data.products || res.data || []))
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', overflowX: 'hidden' }}>
@@ -67,30 +36,27 @@ export default function LandingPage() {
             justifyContent: 'space-between',
             alignItems: 'center',
             position: 'relative',
-            zIndex: 10, // Text behind the image
+            zIndex: 10,
           }}
         >
-          {/* Left Text */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '20px', fontWeight: 400, color: '#374151' }}>Built with</span>
             <span style={{ fontSize: '52px', fontWeight: 900, fontStyle: 'italic', color: '#000000', lineHeight: 1 }}>STYLE</span>
           </div>
 
-          {/* Right Text */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
             <span style={{ fontSize: '20px', fontWeight: 400, color: '#374151' }}>Made for</span>
             <span style={{ fontSize: '52px', fontWeight: 900, fontStyle: 'italic', color: '#000000', lineHeight: 1 }}>SKILL</span>
           </div>
         </div>
 
-        {/* Player Image Overlapping */}
         <div
           style={{
             position: 'absolute',
             top: '0', 
             left: '50%',
             transform: 'translateX(-50%)',
-            zIndex: 30, // Above the hero card
+            zIndex: 30,
             pointerEvents: 'none',
             display: 'flex',
             justifyContent: 'center',
@@ -120,12 +86,11 @@ export default function LandingPage() {
               justifyContent: 'space-between',
               alignItems: 'center',
               position: 'relative',
-              overflow: 'visible', // allow player image to overlap
+              overflow: 'visible',
               minHeight: '360px',
             }}
             className="cz-hero-card-inner"
           >
-            {/* Left side content */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: '400px', zIndex: 40 }}>
               <div 
                 style={{ 
@@ -171,10 +136,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Right side content */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', zIndex: 40 }}>
-              
-              {/* Feature Icons Top Right */}
               <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }} className="cz-hero-features">
                 {[
                   { icon: '⭐', label: 'Trusted Brand' },
@@ -188,7 +150,6 @@ export default function LandingPage() {
                 ))}
               </div>
 
-              {/* Floating Product Card */}
               <div 
                 style={{
                   backgroundColor: '#ffffff',
@@ -202,7 +163,6 @@ export default function LandingPage() {
                 }}
               >
                 <div style={{ backgroundColor: '#F8FAFC', borderRadius: '8px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px' }}>
-                 {/* eslint-disable-next-line @next/next/no-img-element */}
                  <img 
                     src="https://ik.imagekit.io/crickzon/product4.png" 
                     alt="Cricket Jersey"
@@ -214,7 +174,7 @@ export default function LandingPage() {
                   <p style={{ fontSize: '11px', color: '#6B7280', margin: '2px 0 8px 0' }}>Comfortable Sportswear</p>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <Link href="/store/p/cricket-jersey" style={{ textDecoration: 'none' }}>
+                  <Link href="/store" style={{ textDecoration: 'none' }}>
                     <span 
                       style={{ 
                         backgroundColor: '#0057A8', 
@@ -230,7 +190,6 @@ export default function LandingPage() {
                   </Link>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -244,7 +203,6 @@ export default function LandingPage() {
             <p style={{ fontSize: '15px', color: '#6B7280', margin: 0 }}>Find the perfect gear for your game</p>
           </div>
 
-          {/* Categories Grid */}
           <div className="cz-categories-grid">
             {CATEGORIES.map((cat) => (
               <Link 
@@ -280,7 +238,6 @@ export default function LandingPage() {
       <section style={{ backgroundColor: '#F8FAFC', padding: '48px 24px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           
-          {/* Header & View All */}
           <div className="cz-products-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
             <div style={{ textAlign: 'center', width: '100%' }} className="cz-products-header-title">
               <h2 style={{ fontSize: '28px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px 0' }}>New Arrivals</h2>
@@ -308,17 +265,33 @@ export default function LandingPage() {
           </div>
 
           <div className="cz-products-grid">
-            {mockProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                name={product.name}
-                brand={product.brand}
-                images={product.images}
-                minPrice={product.minPrice}
-                maxPrice={product.maxPrice}
-                slug={product.slug}
-              />
-            ))}
+            {loading ? (
+              Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="bg-white border border-[#E5E7EB] rounded-[16px] overflow-hidden flex flex-col">
+                  <div className="w-full h-[200px] bg-gray-200 animate-pulse"></div>
+                  <div className="p-4 flex flex-col gap-4">
+                     <div className="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
+                     <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2"></div>
+                     <div className="h-5 bg-gray-200 animate-pulse rounded w-2/5 my-2"></div>
+                     <div className="h-10 bg-gray-200 animate-pulse rounded-lg w-full"></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              products.map((product) => (
+                <ProductCard
+                  key={product._id || product.slug}
+                  productId={product._id}
+                  name={product.name}
+                  brand={product.brand}
+                  images={product.images}
+                  minPrice={product.minPrice || product.price}
+                  maxPrice={product.maxPrice || product.price}
+                  slug={product.slug}
+                  variants={product.variants}
+                />
+              ))
+            )}
           </div>
 
         </div>
@@ -351,9 +324,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Scoped Styles ── */}
       <style>{`
-        /* Categories Grid */
         .cz-categories-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
@@ -381,7 +352,6 @@ export default function LandingPage() {
           }
         }
 
-        /* Products Grid */
         .cz-products-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
@@ -411,7 +381,6 @@ export default function LandingPage() {
           }
         }
 
-        /* Banner Strip */
         .cz-banner-divider {
           width: 1px;
           height: 16px;
@@ -435,7 +404,6 @@ export default function LandingPage() {
           }
         }
         
-        /* Hero card responsiveness */
         @media (max-width: 850px) {
            .cz-hero-card-inner {
               flex-direction: column;
@@ -461,7 +429,6 @@ export default function LandingPage() {
             }
         }
       `}</style>
-
     </div>
   );
 }
