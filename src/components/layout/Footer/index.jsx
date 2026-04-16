@@ -1,46 +1,11 @@
 import Link from 'next/link';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  InstagramIcon,
-  NewTwitterIcon,
-  YoutubeIcon,
   Mail01Icon,
   CallIcon,
   Location01Icon,
 } from '@hugeicons/core-free-icons';
-
-const SHOP_LINKS = [
-  { label: 'All Products', href: '/store' },
-  { label: 'Bats', href: '/store?category=bats' },
-  { label: 'Balls', href: '/store?category=balls' },
-  { label: 'Protective Gear', href: '/store?category=protective-gear' },
-  { label: 'Accessories', href: '/store?category=accessories' },
-];
-
-const SUPPORT_LINKS = [
-  { label: 'Contact Us', href: '/contact' },
-  { label: 'FAQ', href: '/faq' },
-  { label: 'Shipping Policy', href: '/shipping-policy' },
-  { label: 'Return Policy', href: '/return-policy' },
-];
-
-const SOCIAL = [
-  {
-    label: 'Instagram',
-    href: 'https://instagram.com/crickzon',
-    icon: InstagramIcon,
-  },
-  {
-    label: 'Twitter / X',
-    href: 'https://twitter.com/crickzon',
-    icon: NewTwitterIcon,
-  },
-  {
-    label: 'YouTube',
-    href: 'https://youtube.com/@crickzon',
-    icon: YoutubeIcon,
-  },
-];
+import { SHOP_LINKS, SUPPORT_LINKS, SOCIAL } from './Footer.utils';
 
 function FooterHeading({ children }) {
   return (

@@ -41,7 +41,6 @@ export default function AccountPage() {
 
     if (activeTab === 'orders') {
       setLoadingOrders(true);
-      // Wait assuming API endpoint matches REST standard conventions defined in Next App 
       api.get('/orders')
         .then(res => setOrders(res.data.orders || []))
         .catch(err => console.error(err))

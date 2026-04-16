@@ -1,0 +1,14 @@
+'use client';
+
+import StoreSidebar from '@/components/layout/StoreSidebar';
+
+export default function MinimalLayout({ children }) {
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <StoreSidebar />
+      <main className="cz-store-main" style={{ flex: 1, minHeight: '100vh' }}>
+        {children}
+      </main>
+    </div>
+  );
+}

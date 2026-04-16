@@ -418,7 +418,7 @@ export default function ProductDetailPage() {
       </div>
 
       <style>{`
-        /* PDP Layout Layout */
+        /* PDP Layout */
         .cz-pdp-container {
           display: grid;
           grid-template-columns: 1fr 1fr;

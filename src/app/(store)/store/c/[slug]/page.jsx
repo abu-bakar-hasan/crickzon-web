@@ -2,7 +2,8 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import ProductCard from '@/components/ui/ProductCard';
+import ProductCard from '@/features/store/components/ProductCard';
+import ProductCardSkeleton from '@/features/store/components/ProductCard/ProductCard.skeleton';
 import api from '@/lib/axios';
 
 // Helper to format slug to Title Case
@@ -218,15 +219,7 @@ export default function CategoryPage(props) {
           {loading ? (
              <div className="cz-product-list-grid">
                {Array.from({ length: 6 }).map((_, idx) => (
-                 <div key={idx} className="bg-white border border-[#E5E7EB] rounded-[16px] overflow-hidden flex flex-col">
-                   <div className="w-full h-[200px] bg-gray-200 animate-pulse"></div>
-                   <div className="p-4 flex flex-col gap-4">
-                      <div className="h-4 bg-gray-200 animate-pulse rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2"></div>
-                      <div className="h-5 bg-gray-200 animate-pulse rounded w-2/5 my-2"></div>
-                      <div className="h-10 bg-gray-200 animate-pulse rounded-lg w-full"></div>
-                   </div>
-                 </div>
+                 <ProductCardSkeleton key={idx} />
                ))}
              </div>
           ) : products.length === 0 ? (
@@ -261,7 +254,7 @@ export default function CategoryPage(props) {
           width: 240px;
           flex-shrink: 0;
           position: sticky;
-          top: 88px;
+          top: 24px; /* No navbar in store layout */
         }
 
         .cz-input, .cz-select {
