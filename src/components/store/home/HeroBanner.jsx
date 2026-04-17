@@ -36,38 +36,25 @@ export default function HeroBanner() {
   }, []);
 
   return (
-    <section style={{ position: 'relative', width: '100%', height: '400px', overflow: 'hidden', backgroundColor: '#F8FAFC' }}>
-      {HERO_SLIDES.map((slide, index) => (
-        <div
-          key={slide.id}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            opacity: index === currentSlide ? 1 : 0,
-            transition: 'opacity 0.8s ease-in-out',
-            backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${slide.image})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            textAlign: 'center',
-            padding: '0 24px',
-            zIndex: index === currentSlide ? 1 : 0
-          }}
-        >
-          <h1 style={{ fontSize: '48px', fontWeight: 800, margin: '0 0 16px 0', textShadow: '0 2px 10px rgba(0,0,0,0.5)', maxWidth: '800px', lineHeight: 1.1 }}>{slide.title}</h1>
-          <p style={{ fontSize: '20px', margin: 0, paddingBottom: '32px', textShadow: '0 2px 10px rgba(0,0,0,0.5)', maxWidth: '600px', opacity: 0.9 }}>{slide.subtitle}</p>
-          <Link href="/store" style={{ padding: '14px 32px', backgroundColor: '#E21B70', color: '#fff', fontWeight: 700, borderRadius: '30px', textDecoration: 'none', transition: 'background-color 0.2s, transform 0.2s', fontSize: '16px', boxShadow: '0 4px 14px rgba(226, 27, 112, 0.4)' }}>
-            Shop Now
-          </Link>
-        </div>
-      ))}
+    <>
+      <section className="cz-hero-section">
+        {HERO_SLIDES.map((slide, index) => (
+          <div
+            key={slide.id}
+            className="cz-hero-slide"
+            style={{
+              opacity: index === currentSlide ? 1 : 0,
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${slide.image})`,
+              zIndex: index === currentSlide ? 1 : 0
+            }}
+          >
+            <h1 className="cz-hero-title">{slide.title}</h1>
+            <p className="cz-hero-subtitle">{slide.subtitle}</p>
+            <Link href="/store" className="cz-hero-btn">
+              Shop Now
+            </Link>
+          </div>
+        ))}
       {/* Slider dots */}
       <div style={{ position: 'absolute', bottom: '24px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '8px', zIndex: 10 }}>
         {HERO_SLIDES.map((_, idx) => (
@@ -88,6 +75,88 @@ export default function HeroBanner() {
           />
         ))}
       </div>
-    </section>
+      </section>
+
+      <style>{`
+        .cz-hero-section {
+          position: relative;
+          width: 100%;
+          height: 480px;
+          overflow: hidden;
+          background-color: #F8FAFC;
+        }
+
+        .cz-hero-slide {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          transition: opacity 0.8s ease-in-out;
+          background-size: cover;
+          background-position: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          text-align: center;
+          padding: 0 24px;
+        }
+
+        .cz-hero-title {
+          font-size: 56px;
+          font-weight: 800;
+          margin: 0 0 16px 0;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+          max-width: 800px;
+          line-height: 1.1;
+        }
+
+        .cz-hero-subtitle {
+          font-size: 22px;
+          margin: 0;
+          padding-bottom: 32px;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+          max-width: 600px;
+          opacity: 0.9;
+        }
+
+        .cz-hero-btn {
+          padding: 16px 36px;
+          background-color: #E21B70;
+          color: #fff;
+          font-weight: 700;
+          border-radius: 30px;
+          text-decoration: none;
+          transition: background-color 0.2s, transform 0.2s;
+          font-size: 16px;
+          box-shadow: 0 4px 14px rgba(226, 27, 112, 0.4);
+        }
+
+        .cz-hero-btn:hover {
+          background-color: #be165d;
+          transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+          .cz-hero-section {
+            height: 380px;
+          }
+          .cz-hero-title {
+            font-size: 36px;
+            margin-bottom: 12px;
+          }
+          .cz-hero-subtitle {
+            font-size: 16px;
+            padding-bottom: 24px;
+          }
+          .cz-hero-btn {
+            padding: 12px 28px;
+            font-size: 14px;
+          }
+        }
+      `}</style>
+    </>
   );
 }
