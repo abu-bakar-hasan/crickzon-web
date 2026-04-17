@@ -61,7 +61,6 @@ export default function BrandsSlider() {
   const onMouseUp   = () => { isDragging.current = false; if (trackRef.current) trackRef.current.style.cursor = 'grab'; };
   const onMouseMove = (e) => {
     if (!isDragging.current) return;
-    e.preventDefault();
     const x = e.pageX - trackRef.current.offsetLeft;
     const walk = (x - startX.current) * 1.5;
     trackRef.current.scrollLeft = scrollLeft.current - walk;
@@ -130,7 +129,10 @@ export default function BrandsSlider() {
           display: flex;
           gap: 12px;
           overflow-x: auto;
+          overflow-y: hidden;
           scroll-behavior: smooth;
+          scroll-snap-type: x mandatory;
+          touch-action: pan-x;
           cursor: grab;
           padding-bottom: 8px;
           -webkit-overflow-scrolling: touch;
@@ -139,7 +141,11 @@ export default function BrandsSlider() {
         .czb-track::-webkit-scrollbar { display: none; }
 
         /* Card */
-        .czb-link { text-decoration: none; flex-shrink: 0; }
+        .czb-link { 
+          text-decoration: none; 
+          flex-shrink: 0; 
+          scroll-snap-align: start;
+        }
 
         .czb-card {
           width: 120px;
