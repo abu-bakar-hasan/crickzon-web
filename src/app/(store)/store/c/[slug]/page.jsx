@@ -6,7 +6,6 @@ import ProductCard from '@/features/store/components/ProductCard';
 import ProductCardSkeleton from '@/features/store/components/ProductCard/ProductCard.skeleton';
 import api from '@/lib/axios';
 
-// Helper to format slug to Title Case
 function formatTitle(slug) {
   if (!slug) return '';
   return slug
@@ -18,7 +17,6 @@ function formatTitle(slug) {
 const BRANDS = ['SS', 'MRF', 'SG', 'Kookaburra', 'Gray-Nicolls'];
 
 export default function CategoryPage(props) {
-  // Using Next.js 15 unwrapping standard as prompted
   const params = use(props.params);
   const slug = params.slug;
   const categoryTitle = formatTitle(slug);
@@ -31,80 +29,61 @@ export default function CategoryPage(props) {
     setLoading(true);
     api.get(`/products?category=${slug}`)
       .then(res => setProducts(res.data.products || res.data || []))
-      .catch(err => console.error("Error fetching category products", err))
+      .catch(err => console.error('Error fetching category products', err))
       .finally(() => setLoading(false));
   }, [slug]);
 
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '64px' }}>
-      <div 
-        style={{ 
-          maxWidth: '1280px', 
-          margin: '0 auto', 
-          padding: '32px 24px',
-          display: 'flex',
-          gap: '32px',
-          alignItems: 'flex-start'
-        }}
-      >
-        
-        {/* ── Desktop Sidebar (Filters) ── */}
-        <aside className="cz-sidebar">
+    <div className="min-h-screen bg-white pb-16">
+      <div className="max-w-[1240px] mx-auto px-4 lg:px-8 py-8 flex gap-8 items-start">
+
+        {/* ── Desktop Filter Sidebar ── */}
+        <aside className="cat-filter-panel">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: 600, color: '#0F172A', margin: 0 }}>Filters</h2>
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Filters</h2>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+
             {/* Price Range */}
             <div>
-              <label style={{ fontSize: '13px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '12px' }}>
+              <label style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '10px', letterSpacing: '0.05em' }}>
                 Price Range
               </label>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
                   <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6B7280', fontSize: '13px' }}>₹</span>
-                  <input 
-                    type="number" 
-                    placeholder="Min"
-                    className="cz-input"
-                    style={{ paddingLeft: '22px' }}
-                  />
+                  <input type="number" placeholder="Min" className="cat-filter-input" style={{ paddingLeft: '22px' }} />
                 </div>
                 <div style={{ flex: 1, position: 'relative' }}>
                   <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6B7280', fontSize: '13px' }}>₹</span>
-                  <input 
-                    type="number" 
-                    placeholder="Max"
-                    className="cz-input"
-                    style={{ paddingLeft: '22px' }}
-                  />
+                  <input type="number" placeholder="Max" className="cat-filter-input" style={{ paddingLeft: '22px' }} />
                 </div>
               </div>
-              <button className="cz-apply-btn">Apply</button>
+              <button className="cat-apply-btn">Apply</button>
             </div>
 
             {/* Brand Filter */}
             <div>
-              <label style={{ fontSize: '13px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '12px' }}>
+              <label style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '10px', letterSpacing: '0.05em' }}>
                 Brand
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {BRANDS.map((b) => (
                   <label key={b} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                    <input type="checkbox" style={{ cursor: 'pointer' }} />
+                    <input type="checkbox" style={{ cursor: 'pointer', accentColor: '#0057A8' }} />
                     <span style={{ fontSize: '14px', color: '#374151' }}>{b}</span>
                   </label>
                 ))}
               </div>
             </div>
 
-            {/* Sort Dropdown */}
+            {/* Sort */}
             <div>
-              <label style={{ fontSize: '13px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '12px' }}>
+              <label style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '10px', letterSpacing: '0.05em' }}>
                 Sort by
               </label>
-              <select className="cz-select">
+              <select className="cat-filter-select">
                 <option>Newest</option>
                 <option>Price: Low to High</option>
                 <option>Price: High to Low</option>
@@ -116,11 +95,11 @@ export default function CategoryPage(props) {
 
         {/* ── Mobile Filter Bottom Sheet ── */}
         {mobileFilterOpen && (
-          <div className="cz-mobile-sheet-overlay" onClick={() => setMobileFilterOpen(false)}>
-            <div className="cz-mobile-sheet" onClick={(e) => e.stopPropagation()}>
+          <div className="cat-mobile-overlay" onClick={() => setMobileFilterOpen(false)}>
+            <div className="cat-mobile-sheet" onClick={(e) => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#0F172A', margin: 0 }}>Filters</h2>
-                <button 
+                <button
                   onClick={() => setMobileFilterOpen(false)}
                   style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#6B7280' }}
                 >
@@ -128,54 +107,45 @@ export default function CategoryPage(props) {
                 </button>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                {/* Price Range */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                 <div>
-                  <label style={{ fontSize: '13px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '12px' }}>
-                    Price Range
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                  <label style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '10px' }}>Price Range</label>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                     <div style={{ flex: 1, position: 'relative' }}>
                       <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6B7280', fontSize: '13px' }}>₹</span>
-                      <input type="number" placeholder="Min" className="cz-input" style={{ paddingLeft: '22px' }} />
+                      <input type="number" placeholder="Min" className="cat-filter-input" style={{ paddingLeft: '22px' }} />
                     </div>
                     <div style={{ flex: 1, position: 'relative' }}>
                       <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#6B7280', fontSize: '13px' }}>₹</span>
-                      <input type="number" placeholder="Max" className="cz-input" style={{ paddingLeft: '22px' }} />
+                      <input type="number" placeholder="Max" className="cat-filter-input" style={{ paddingLeft: '22px' }} />
                     </div>
                   </div>
                 </div>
 
-                {/* Brand Filter */}
                 <div>
-                  <label style={{ fontSize: '13px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '12px' }}>
-                    Brand
-                  </label>
+                  <label style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '10px' }}>Brand</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {BRANDS.map((b) => (
                       <label key={`mob-${b}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                        <input type="checkbox" style={{ width: '18px', height: '18px' }} />
+                        <input type="checkbox" style={{ width: '18px', height: '18px', accentColor: '#0057A8' }} />
                         <span style={{ fontSize: '15px', color: '#374151' }}>{b}</span>
                       </label>
                     ))}
                   </div>
                 </div>
 
-                {/* Sort Dropdown */}
                 <div>
-                  <label style={{ fontSize: '13px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '12px' }}>
-                    Sort by
-                  </label>
-                  <select className="cz-select">
+                  <label style={{ fontSize: '12px', textTransform: 'uppercase', color: '#6B7280', fontWeight: 600, display: 'block', marginBottom: '10px' }}>Sort by</label>
+                  <select className="cat-filter-select">
                     <option>Newest</option>
                     <option>Price: Low to High</option>
                     <option>Price: High to Low</option>
                   </select>
                 </div>
 
-                <button 
-                  className="cz-apply-btn" 
-                  style={{ marginTop: '16px', padding: '14px 0', fontSize: '15px' }}
+                <button
+                  className="cat-apply-btn"
+                  style={{ marginTop: '8px', padding: '14px 0', fontSize: '15px' }}
                   onClick={() => setMobileFilterOpen(false)}
                 >
                   Show {products.length} Products
@@ -185,51 +155,53 @@ export default function CategoryPage(props) {
           </div>
         )}
 
-        {/* ── Main Content (Right Grid) ── */}
+        {/* ── Main Content ── */}
         <main style={{ flex: 1, minWidth: 0 }}>
-          
-          {/* Breadcrumb & Header */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontSize: '13px', color: '#6B7280', marginBottom: '12px' }}>
-              <Link href="/store" style={{ color: '#6B7280', textDecoration: 'none' }}>Store</Link> 
-              <span style={{ margin: '0 8px' }}>&rarr;</span> 
-              <span style={{ color: '#0F172A', fontWeight: 500 }}>{categoryTitle || 'Category'}</span>
-            </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px' }}>
-              <div>
-                <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>
-                  {categoryTitle || 'Products'}
-                </h1>
-                <span style={{ fontSize: '13px', color: '#6B7280' }}>
-                  {loading ? 'Loading...' : `${products.length} Products`}
-                </span>
-              </div>
 
-              {/* Mobile Filter Trigger */}
-              <button 
-                className="cz-mobile-filter-btn"
-                onClick={() => setMobileFilterOpen(true)}
-              >
-                Filters &amp; Sort
-              </button>
-            </div>
+          {/* Breadcrumb */}
+          <div className="text-[13px] text-[#6B7280] mb-6 flex items-center flex-wrap">
+            <Link href="/store" className="hover:underline text-[#6B7280]">Store</Link>
+            <span className="mx-2">→</span>
+            <span className="text-[#6B7280]">Categories</span>
+            <span className="mx-2">→</span>
+            <span className="text-[#0F172A] font-[500]">{categoryTitle || 'Category'}</span>
           </div>
 
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '16px', marginBottom: '28px' }}>
+            <div>
+              <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>
+                {categoryTitle || 'Products'}
+              </h1>
+              <span style={{ fontSize: '13px', color: '#6B7280' }}>
+                {loading ? 'Loading...' : `${products.length} Products`}
+              </span>
+            </div>
+
+            {/* Mobile Filter Trigger */}
+            <button
+              className="cat-mobile-filter-btn"
+              onClick={() => setMobileFilterOpen(true)}
+            >
+              Filters &amp; Sort
+            </button>
+          </div>
+
+          {/* Product Grid */}
           {loading ? (
-             <div className="cz-product-list-grid">
-               {Array.from({ length: 6 }).map((_, idx) => (
-                 <ProductCardSkeleton key={idx} />
-               ))}
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <ProductCardSkeleton key={idx} />
+              ))}
+            </div>
           ) : products.length === 0 ? (
-             <div className="flex flex-col items-center justify-center py-20 text-center">
-               <div className="text-[48px] mb-4">🏏</div>
-               <h3 className="text-xl font-bold text-gray-800">No products found</h3>
-               <p className="text-gray-500 mt-2">Check back later for more gear arriving soon!</p>
-             </div>
+            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-[#E5E7EB] rounded-[16px] bg-gray-50/50">
+              <div className="text-[48px] mb-4 opacity-80">🏏</div>
+              <p className="text-[16px] font-[600] text-[#0F172A] mb-2">No products found</p>
+              <p className="text-[14px] text-[#6B7280]">Check back later for more gear arriving soon!</p>
+            </div>
           ) : (
-            <div className="cz-product-list-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((prod) => (
                 <ProductCard
                   key={prod._id || prod.slug}
@@ -250,14 +222,19 @@ export default function CategoryPage(props) {
       </div>
 
       <style>{`
-        .cz-sidebar {
-          width: 240px;
+        /* ── Filter panel (desktop) ── */
+        .cat-filter-panel {
+          width: 220px;
           flex-shrink: 0;
           position: sticky;
-          top: 24px; /* No navbar in store layout */
+          top: 24px;
+          background: #ffffff;
+          border: 1px solid #E5E7EB;
+          border-radius: 16px;
+          padding: 20px;
         }
 
-        .cz-input, .cz-select {
+        .cat-filter-input, .cat-filter-select {
           width: 100%;
           height: 36px;
           border-radius: 8px;
@@ -267,16 +244,17 @@ export default function CategoryPage(props) {
           outline: none;
           box-sizing: border-box;
           transition: border-color 0.2s ease;
+          background: #fff;
         }
-        
-        .cz-input:focus, .cz-select:focus {
+
+        .cat-filter-input:focus, .cat-filter-select:focus {
           border-color: #0057A8;
         }
-        
-        .cz-input { padding: 0 8px; }
-        .cz-select { padding: 0 12px; cursor: pointer; }
 
-        .cz-apply-btn {
+        .cat-filter-input { padding: 0 8px; }
+        .cat-filter-select { padding: 0 12px; cursor: pointer; }
+
+        .cat-apply-btn {
           width: 100%;
           background-color: #0057A8;
           color: #ffffff;
@@ -288,18 +266,13 @@ export default function CategoryPage(props) {
           cursor: pointer;
           transition: background-color 0.2s ease;
         }
-        
-        .cz-apply-btn:hover {
+
+        .cat-apply-btn:hover {
           background-color: #004485;
         }
 
-        .cz-product-list-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
-        }
-
-        .cz-mobile-filter-btn {
+        /* ── Mobile filter trigger ── */
+        .cat-mobile-filter-btn {
           display: none;
           border: 1px solid #E5E7EB;
           background-color: #ffffff;
@@ -309,23 +282,11 @@ export default function CategoryPage(props) {
           font-weight: 600;
           color: #374151;
           cursor: pointer;
+          white-space: nowrap;
         }
 
-        @media (max-width: 1024px) {
-          .cz-product-list-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .cz-sidebar { display: none; }
-          .cz-mobile-filter-btn { display: block; }
-          .cz-product-list-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .cz-mobile-sheet-overlay {
+        /* ── Mobile bottom sheet ── */
+        .cat-mobile-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
           background-color: rgba(0,0,0,0.5);
@@ -334,19 +295,25 @@ export default function CategoryPage(props) {
           align-items: flex-end;
         }
 
-        .cz-mobile-sheet {
+        .cat-mobile-sheet {
           background-color: #ffffff;
           width: 100%;
           border-radius: 20px 20px 0 0;
           padding: 24px;
           max-height: 85vh;
           overflow-y: auto;
-          animation: slideUp 0.3s ease forwards;
+          animation: catSlideUp 0.3s ease forwards;
         }
 
-        @keyframes slideUp {
+        @keyframes catSlideUp {
           from { transform: translateY(100%); }
           to { transform: translateY(0); }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+          .cat-filter-panel { display: none; }
+          .cat-mobile-filter-btn { display: block; }
         }
       `}</style>
     </div>
