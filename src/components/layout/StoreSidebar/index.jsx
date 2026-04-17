@@ -9,7 +9,7 @@ export default function StoreSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed bottom-0 left-0 right-0 z-40 flex w-full flex-row items-center justify-around border-t border-gray-200 bg-white px-1 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] lg:top-0 lg:bottom-auto lg:h-screen lg:w-[72px] lg:flex-col lg:justify-start lg:border-r lg:border-t-0 lg:px-0 lg:pb-4 lg:shadow-none">
+    <aside className="fixed bottom-0 left-0 right-0 z-40 flex h-16 w-full flex-row items-center justify-around border-t border-gray-200 bg-white px-1 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] lg:top-0 lg:bottom-auto lg:h-screen lg:w-[72px] lg:flex-col lg:justify-start lg:border-r lg:border-t-0 lg:px-0 lg:pb-4 lg:shadow-none">
       {/* ── Logo (desktop only) ── */}
       <Link
         href="/"
