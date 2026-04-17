@@ -159,11 +159,11 @@ export default function StoreSidebar() {
           }
 
           /* Hide "Back to site" on desktop, but show on mobile */
-          .cz-desktop-only {
+          .cz-nav-item-wrapper.cz-desktop-only {
             display: none !important;
           }
           
-          .cz-mobile-only {
+          .cz-nav-item-wrapper.cz-mobile-only {
              display: flex !important;
           }
 
