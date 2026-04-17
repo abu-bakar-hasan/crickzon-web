@@ -5,7 +5,7 @@ import TrendingProducts from '@/components/store/home/TrendingProducts';
 
 export default function StoreHome() {
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '64px' }}>
+    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
       <HeroBanner />
       <BrandsSlider />
       <CategoryGrid />

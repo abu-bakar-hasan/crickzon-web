@@ -55,16 +55,18 @@ export default function CategoryGrid() {
                    >
                      {/* Image / Emoji area */}
                      {cat.image ? (
-                       <img
-                         src={cat.image}
-                         alt={cat.name}
-                         style={{
-                           width: '100%',
-                           height: '130px',
-                           objectFit: 'cover',
-                           display: 'block',
-                         }}
-                       />
+                       <div style={{ padding: '12px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                         <img
+                           src={cat.image}
+                           alt={cat.name}
+                           style={{
+                             maxWidth: '100%',
+                             maxHeight: '100%',
+                             objectFit: 'contain',
+                             display: 'block',
+                           }}
+                         />
+                       </div>
                      ) : (
                        <div style={{
                          width: '100%',
@@ -141,13 +143,17 @@ export default function CategoryGrid() {
 
         @media (max-width: 768px) {
           .cz-section-wrapper {
-            padding: 16px 16px;
+            padding: 8px 12px;
           }
           .cz-section-title {
-            font-size: 20px;
+            font-size: 18px;
+            margin: 0;
           }
           .cz-section-subtitle {
-            font-size: 13px;
+            font-size: 12px;
+          }
+          .cz-store-category-card img {
+            max-height: 80px;
           }
         }
       `}</style>

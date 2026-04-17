@@ -52,7 +52,6 @@ export default function BrandsSlider() {
                       overflow: 'hidden',
                       cursor: 'pointer',
                       transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-                      width: '150px',
                       flexShrink: 0,
                     }}
                   >
@@ -137,6 +136,10 @@ export default function BrandsSlider() {
           scrollbar-width: none;
         }
 
+        .cz-brand-slider-card {
+           width: 150px;
+        }
+
         .cz-brand-slider-card:hover {
           box-shadow: 0 4px 16px rgba(0,0,0,0.06);
           transform: translateY(-2px);
@@ -167,14 +170,18 @@ export default function BrandsSlider() {
         }
 
         @media (max-width: 768px) {
+          .cz-brand-slider-card {
+             width: 110px;
+          }
           .cz-section-wrapper {
-            padding: 32px 0 16px 0;
+            padding: 24px 0 16px 0;
           }
           .cz-section-title {
-            font-size: 20px;
+            font-size: 18px;
+            margin: 0;
           }
           .cz-section-subtitle {
-            font-size: 13px;
+            font-size: 12px;
           }
         }
       `}</style>
