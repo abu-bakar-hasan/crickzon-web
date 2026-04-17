@@ -110,15 +110,14 @@ export default function CategoryGrid() {
         /* Grid */
         .czcat-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 14px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
         }
-
-        @media (max-width: 900px) {
-          .czcat-grid { grid-template-columns: repeat(3, 1fr); }
+        @media (min-width: 540px) {
+          .czcat-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
         }
-        @media (max-width: 600px) {
-          .czcat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        @media (min-width: 900px) {
+          .czcat-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
         }
 
         /* Link reset */

@@ -155,14 +155,14 @@ export default function TrendingProducts() {
         /* Grid */
         .czp-grid {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 14px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
         }
-        @media (max-width: 900px) {
-          .czp-grid { grid-template-columns: repeat(3, 1fr); }
+        @media (min-width: 540px) {
+          .czp-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
         }
-        @media (max-width: 600px) {
-          .czp-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        @media (min-width: 900px) {
+          .czp-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
         }
 
         .czp-link { text-decoration: none; }

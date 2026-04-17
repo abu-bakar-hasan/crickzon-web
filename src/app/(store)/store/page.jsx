@@ -30,20 +30,30 @@ export default function StoreHome() {
         .czsh-page {
           max-width: 1280px;
           margin: 0 auto;
-          padding: 20px 20px 80px;
+          /* mobile: small side padding, extra bottom for the bottom nav */
+          padding: 12px 12px 90px;
           display: flex;
           flex-direction: column;
-          gap: 40px;
+          gap: 24px;
         }
 
         .czsh-section {
           width: 100%;
         }
 
-        @media (max-width: 640px) {
+        /* tablet and up */
+        @media (min-width: 540px) {
           .czsh-page {
-            padding: 12px 12px 80px;
-            gap: 28px;
+            padding: 16px 16px 90px;
+            gap: 32px;
+          }
+        }
+
+        /* desktop: sidebar is present, no bottom nav */
+        @media (min-width: 1024px) {
+          .czsh-page {
+            padding: 24px 24px 48px;
+            gap: 40px;
           }
         }
       `}</style>

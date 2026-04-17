@@ -100,9 +100,9 @@ export default function HeroBanner() {
         .czh-hero {
           position: relative;
           width: 100%;
-          height: 360px;
+          height: 320px;
           overflow: hidden;
-          border-radius: 20px;
+          border-radius: 16px;
         }
 
         .czh-track {
@@ -147,15 +147,15 @@ export default function HeroBanner() {
           z-index: 2;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 8px;
           max-width: 520px;
         }
 
         .czh-tag {
           display: inline-block;
-          padding: 4px 12px;
+          padding: 3px 10px;
           border-radius: 100px;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.06em;
@@ -163,12 +163,12 @@ export default function HeroBanner() {
         }
 
         .czh-emoji {
-          font-size: 40px;
+          font-size: 36px;
           line-height: 1;
         }
 
         .czh-title {
-          font-size: clamp(22px, 3vw, 34px);
+          font-size: clamp(18px, 2.5vw, 30px);
           font-weight: 800;
           color: #ffffff;
           margin: 0;
@@ -176,7 +176,7 @@ export default function HeroBanner() {
         }
 
         .czh-sub {
-          font-size: 14px;
+          font-size: 13px;
           color: rgba(255,255,255,0.75);
           margin: 0;
           line-height: 1.5;
@@ -184,9 +184,9 @@ export default function HeroBanner() {
 
         .czh-btn {
           display: inline-block;
-          padding: 10px 24px;
+          padding: 8px 20px;
           border-radius: 100px;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 700;
           text-decoration: none;
           width: fit-content;
@@ -200,7 +200,7 @@ export default function HeroBanner() {
         /* Dots */
         .czh-dots {
           position: absolute;
-          bottom: 16px;
+          bottom: 14px;
           left: 50%;
           transform: translateX(-50%);
           display: flex;
@@ -209,8 +209,8 @@ export default function HeroBanner() {
         }
 
         .czh-dot {
-          width: 8px;
-          height: 8px;
+          width: 7px;
+          height: 7px;
           border-radius: 50%;
           border: none;
           background: rgba(255,255,255,0.4);
@@ -220,7 +220,7 @@ export default function HeroBanner() {
         }
         .czh-dot--active {
           background: #ffffff;
-          width: 22px;
+          width: 20px;
           border-radius: 100px;
         }
 
@@ -232,9 +232,9 @@ export default function HeroBanner() {
           background: rgba(255,255,255,0.15);
           border: none;
           color: #ffffff;
-          font-size: 28px;
-          width: 40px;
-          height: 40px;
+          font-size: 26px;
+          width: 36px;
+          height: 36px;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -246,14 +246,26 @@ export default function HeroBanner() {
           line-height: 1;
         }
         .czh-arrow:hover { background: rgba(255,255,255,0.3); }
-        .czh-arrow--prev { left: 14px; }
-        .czh-arrow--next { right: 14px; }
+        .czh-arrow--prev { left: 12px; }
+        .czh-arrow--next { right: 12px; }
 
-        @media (max-width: 640px) {
-          .czh-hero { height: 280px; border-radius: 14px; }
-          .czh-slide { padding: 0 20px; }
+        /* Tablet */
+        @media (max-width: 768px) {
+          .czh-hero { height: 240px; }
+          .czh-slide { padding: 0 28px; }
+          .czh-circle-1 { width: 280px; height: 280px; }
+          .czh-circle-2 { display: none; }
+          .czh-emoji { font-size: 28px; }
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+          .czh-hero { height: 210px; border-radius: 12px; }
+          .czh-slide { padding: 0 16px; }
           .czh-circle { display: none; }
           .czh-arrow { display: none; }
+          .czh-sub { display: none; }
+          .czh-emoji { font-size: 24px; }
         }
       `}</style>
     </section>
