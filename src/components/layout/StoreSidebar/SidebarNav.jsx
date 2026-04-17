@@ -14,8 +14,8 @@ import useCartStore from '@/store/cartStore';
 export const mainNav = [
   { href: '/store',            icon: Home01Icon,    label: 'Home'       },
   { href: '/store/search',     icon: Search01Icon,  label: 'Search'     },
-  { href: '/store/categories', icon: GridIcon,      label: 'Categories' },
-  { href: '/store/brands',     icon: Award01Icon,   label: 'Brands'     },
+  { href: '/store/categories', icon: GridIcon,      label: 'Categories', extraClass: 'cz-desktop-only' },
+  { href: '/store/brands',     icon: Award01Icon,   label: 'Brands',     extraClass: 'cz-desktop-only' },
 ];
 
 // ─── Individual nav item ───────────────────────────────────────────────────
@@ -24,7 +24,7 @@ export function NavItem({ href, icon, label, active, extraClass = '' }) {
     <Link
       href={href}
       style={{ textDecoration: 'none', position: 'relative' }}
-      className={`cz-nav-item-wrapper ${extraClass}`}
+      className={`cz-nav-item-wrapper ${active ? 'cz-active' : ''} ${extraClass}`}
     >
       <div
         className="cz-nav-item"
@@ -68,11 +68,12 @@ export default function SidebarNav({ pathname }) {
           icon={item.icon}
           label={item.label}
           active={isActive(item.href)}
+          extraClass={item?.extraClass || ''}
         />
       ))}
 
       {/* Cart (with badge) */}
-      <Link href="/cart" style={{ textDecoration: 'none', position: 'relative' }} className="cz-nav-item-wrapper">
+      <Link href="/cart" style={{ textDecoration: 'none', position: 'relative' }} className={`cz-nav-item-wrapper ${pathname === '/cart' ? 'cz-active' : ''}`}>
         <div
           className="cz-nav-item"
           style={{

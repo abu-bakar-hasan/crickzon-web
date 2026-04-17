@@ -28,13 +28,13 @@ export default function StoreSidebar() {
             label="Account"
             active={pathname.startsWith('/account')}
           />
-          {/* Back to site — hidden on mobile */}
+          {/* Back to home — shown on mobile */}
           <NavItem
             href="/"
             icon={ArrowLeft01Icon}
-            label="Back to site"
+            label="Back"
             active={false}
-            extraClass="cz-sidebar-back"
+            extraClass="cz-sidebar-back cz-mobile-only"
           />
         </div>
       </aside>
@@ -136,7 +136,7 @@ export default function StoreSidebar() {
             left: 0 !important;
             right: 0 !important;
             width: 100% !important;
-            height: 64px !important;
+            height: 70px !important;
             flex-direction: row !important;
             align-items: center !important;
             justify-content: space-around !important;
@@ -152,44 +152,64 @@ export default function StoreSidebar() {
             display: none !important;
           }
 
-          /* Main nav: horizontal row */
-          .cz-sidebar-main-nav {
-            flex-direction: row !important;
-            flex: unset !important;
-            gap: 0 !important;
-            align-items: center !important;
-          }
-
-          /* Bottom section: inline with main nav */
+          /* Main nav & bottom section: use contents to distribute all items evenly */
+          .cz-sidebar-main-nav,
           .cz-sidebar-bottom {
-            flex-direction: row !important;
-            gap: 0 !important;
-            align-items: center !important;
+            display: contents !important;
           }
 
-          /* Hide "Back to site" on small screens — not useful in bottom bar */
-          .cz-sidebar-back {
+          /* Hide "Back to site" on desktop, but show on mobile */
+          .cz-desktop-only {
             display: none !important;
           }
+          
+          .cz-mobile-only {
+             display: flex !important;
+          }
 
-          /* Tooltip: appear ABOVE icons on mobile */
+          /* Layout wrapper for stacking icon and label */
+          .cz-nav-item-wrapper {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 2px !important;
+            width: 20% !important;
+          }
+
+          /* Tooltip becomes visible static label */
           .cz-tooltip {
-            left: 50% !important;
-            top: auto !important;
-            bottom: calc(100% + 8px) !important;
-            transform: translateX(-50%) !important;
+            position: static !important;
+            opacity: 1 !important;
+            background: transparent !important;
+            color: #9CA3AF !important;
+            font-size: 11px !important;
+            padding: 0 !important;
+            transform: none !important;
+            pointer-events: auto !important;
+            font-weight: 500 !important;
           }
 
-          /* Nav item size — slightly compact on mobile */
+          /* Active styling */
+          .cz-nav-item-wrapper.cz-active .cz-tooltip {
+            color: #0057A8 !important;
+          }
+
+          .cz-nav-item-wrapper.cz-active .cz-nav-item {
+            color: #0057A8 !important;
+          }
+
+          /* Nav item size compact with transparent background */
           .cz-nav-item {
-            width: 44px !important;
-            height: 44px !important;
+            width: 32px !important;
+            height: 32px !important;
+            background-color: transparent !important;
           }
 
-          /* Main content: no left margin, add bottom padding for the bar */
+          /* Main content: no left margin */
           .cz-store-main {
             margin-left: 0 !important;
-            padding-bottom: 64px !important;
+            padding-bottom: 70px !important;
           }
         }
       `}</style>
