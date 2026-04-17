@@ -18,14 +18,14 @@ export default function TrendingProducts() {
 
   return (
     <>
-      <section style={{ padding: '24px 24px 64px 24px' }}>
+      <section className="cz-section-wrapper">
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
             <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>Trending Products</h2>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>Discover what players are buying right now</p>
+              <h2 className="cz-section-title">Trending Products</h2>
+              <p className="cz-section-subtitle">Discover what players are buying right now</p>
             </div>
-            <Link href="/store/search" style={{ fontSize: '14px', fontWeight: 600, color: '#0057A8', textDecoration: 'none' }}>View All</Link>
+            <Link href="/store/search" className="cz-section-link">View All</Link>
           </div>
 
           {productsLoading ? (
@@ -142,6 +142,42 @@ export default function TrendingProducts() {
           .cz-store-products-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
+          }
+        }
+
+        .cz-section-wrapper {
+          padding: 24px 24px 64px 24px;
+        }
+
+        .cz-section-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #0F172A;
+          margin: 0 0 4px 0;
+        }
+
+        .cz-section-subtitle {
+          font-size: 14px;
+          color: #6B7280;
+          margin: 0;
+        }
+
+        .cz-section-link {
+          font-size: 14px;
+          font-weight: 600;
+          color: #0057A8;
+          text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+          .cz-section-wrapper {
+            padding: 16px 16px 48px 16px;
+          }
+          .cz-section-title {
+            font-size: 20px;
+          }
+          .cz-section-subtitle {
+            font-size: 13px;
           }
         }
       `}</style>

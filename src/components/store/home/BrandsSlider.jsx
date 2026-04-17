@@ -18,14 +18,14 @@ export default function BrandsSlider() {
 
   return (
     <>
-      <section style={{ padding: '48px 0 24px 0' }}>
+      <section className="cz-section-wrapper">
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
             <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>Shop by Brand</h2>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>Explore gear from top cricket brands</p>
+              <h2 className="cz-section-title">Shop by Brand</h2>
+              <p className="cz-section-subtitle">Explore gear from top cricket brands</p>
             </div>
-            <Link href="/store/brands" style={{ fontSize: '14px', fontWeight: 600, color: '#0057A8', textDecoration: 'none' }}>View All</Link>
+            <Link href="/store/brands" className="cz-section-link">View All</Link>
           </div>
         </div>
 
@@ -140,6 +140,42 @@ export default function BrandsSlider() {
         .cz-brand-slider-card:hover {
           box-shadow: 0 4px 16px rgba(0,0,0,0.06);
           transform: translateY(-2px);
+        }
+
+        .cz-section-wrapper {
+          padding: 48px 0 24px 0;
+        }
+
+        .cz-section-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #0F172A;
+          margin: 0 0 4px 0;
+        }
+
+        .cz-section-subtitle {
+          font-size: 14px;
+          color: #6B7280;
+          margin: 0;
+        }
+
+        .cz-section-link {
+          font-size: 14px;
+          font-weight: 600;
+          color: #0057A8;
+          text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+          .cz-section-wrapper {
+            padding: 32px 0 16px 0;
+          }
+          .cz-section-title {
+            font-size: 20px;
+          }
+          .cz-section-subtitle {
+            font-size: 13px;
+          }
         }
       `}</style>
     </>

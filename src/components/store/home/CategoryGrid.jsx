@@ -18,14 +18,14 @@ export default function CategoryGrid() {
 
   return (
     <>
-      <section style={{ padding: '24px 24px' }}>
+      <section className="cz-section-wrapper">
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
             <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>Shop by Category</h2>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>Find the perfect gear for your game</p>
+              <h2 className="cz-section-title">Shop by Category</h2>
+              <p className="cz-section-subtitle">Find the perfect gear for your game</p>
             </div>
-            <Link href="/store/categories" style={{ fontSize: '14px', fontWeight: 600, color: '#0057A8', textDecoration: 'none' }}>View All</Link>
+            <Link href="/store/categories" className="cz-section-link">View All</Link>
           </div>
 
           {categoriesLoading ? (
@@ -112,6 +112,42 @@ export default function CategoryGrid() {
           .cz-store-categories-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
+          }
+        }
+
+        .cz-section-wrapper {
+          padding: 24px 24px;
+        }
+
+        .cz-section-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #0F172A;
+          margin: 0 0 4px 0;
+        }
+
+        .cz-section-subtitle {
+          font-size: 14px;
+          color: #6B7280;
+          margin: 0;
+        }
+
+        .cz-section-link {
+          font-size: 14px;
+          font-weight: 600;
+          color: #0057A8;
+          text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+          .cz-section-wrapper {
+            padding: 16px 16px;
+          }
+          .cz-section-title {
+            font-size: 20px;
+          }
+          .cz-section-subtitle {
+            font-size: 13px;
           }
         }
       `}</style>
