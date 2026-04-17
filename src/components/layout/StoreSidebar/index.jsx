@@ -1,74 +1,198 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  Home01Icon,
-  Search01Icon,
-  ShoppingCart01Icon,
-  UserIcon,
-  ArrowLeft01Icon,
-} from "@hugeicons/core-free-icons";
-
-// Define the 5 explicit items here
-const NAV_ITEMS = [
-  { href: "/store", icon: Home01Icon, label: "Home" },
-  { href: "/search", icon: Search01Icon, label: "Search" },
-  { href: "/cart", icon: ShoppingCart01Icon, label: "Cart" },
-  { href: "/account", icon: UserIcon, label: "Profile" },
-  { href: "/", icon: ArrowLeft01Icon, label: "Back" },
-];
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { UserIcon, ArrowLeft01Icon } from '@hugeicons/core-free-icons';
+import SidebarNav, { NavItem } from './SidebarNav';
 
 export default function StoreSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed bottom-0 left-0 z-40 flex w-full flex-row items-center justify-around border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] lg:top-0 lg:h-screen lg:w-[72px] lg:flex-col lg:justify-start lg:border-r lg:border-t-0 lg:pb-4 lg:pt-0 lg:shadow-none">
-      {/* ── Logo (desktop only) ── */}
-      <Link
-        href="/"
-        className="mb-3 hidden h-16 w-[72px] shrink-0 items-center justify-center border-b border-gray-200 lg:flex"
-      >
-        <span className="text-[22px] font-bold text-[#0057A8]">C</span>
-      </Link>
+    <>
+      <aside className="cz-sidebar">
 
-      {/* ── Navigation ── */}
-      <nav className="flex w-full flex-row justify-around lg:flex-1 lg:flex-col lg:items-center lg:justify-start lg:gap-2">
-        {NAV_ITEMS.map((item) => {
-          // Exact match for root-level links, loose match for sub-routes
-          const isActive =
-            pathname === item.href ||
-            (pathname.startsWith(item.href) &&
-              item.href !== "/" &&
-              item.href !== "/store");
-          const Icon = item.icon;
+        {/* ── Logo (desktop only) ── */}
+        <Link href="/" className="cz-sidebar-logo">
+          <span style={{ fontSize: '22px', fontWeight: 700, color: '#0057A8' }}>C</span>
+        </Link>
 
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="group relative flex flex-col items-center justify-center gap-1 p-2 transition-colors lg:h-11 lg:w-11 lg:rounded-md lg:hover:bg-gray-100"
-            >
-              {/* Icon */}
-              <Icon
-                className={`h-6 w-6 lg:h-5 lg:w-5 ${isActive ? "text-pink-600" : "text-gray-500 group-hover:text-gray-900"}`}
-              />
+        {/* ── Main nav icons ── */}
+        <SidebarNav pathname={pathname} />
 
-              {/* Mobile Label (Hidden on Desktop) */}
-              <span
-                className={`text-[10px] font-medium lg:hidden ${isActive ? "text-pink-600" : "text-gray-500 group-hover:text-gray-900"}`}
-              >
-                {item.label}
-              </span>
+        {/* ── Bottom icons ── */}
+        <div className="cz-sidebar-bottom">
+          <NavItem
+            href="/account"
+            icon={UserIcon}
+            label="Account"
+            active={pathname.startsWith('/account')}
+          />
+          {/* Back to site — hidden on mobile */}
+          <NavItem
+            href="/"
+            icon={ArrowLeft01Icon}
+            label="Back to site"
+            active={false}
+            extraClass="cz-sidebar-back"
+          />
+        </div>
+      </aside>
 
-              {/* Desktop Tooltip (Hidden on Mobile) */}
-              <span className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2.5 py-1 text-xs font-medium text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 max-lg:hidden">
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
+      {/* ── Scoped styles ── */}
+      <style>{`
+        /* ════════════════════════════════
+           DESKTOP: left sidebar (≥ 1024px)
+           ════════════════════════════════ */
+        .cz-sidebar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 72px;
+          height: 100vh;
+          background-color: #ffffff;
+          border-right: 1px solid #E5E7EB;
+          z-index: 40;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding-bottom: 16px;
+        }
+
+        .cz-sidebar-logo {
+          width: 72px;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          flex-shrink: 0;
+          border-bottom: 1px solid #E5E7EB;
+          margin-bottom: 12px;
+        }
+
+        .cz-sidebar-main-nav {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          flex: 1;
+        }
+
+        .cz-sidebar-bottom {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+
+        /* ── Nav item hover ── */
+        .cz-nav-item:hover {
+          background-color: #F3F4F6 !important;
+          color: #374151 !important;
+        }
+
+        .cz-nav-item-wrapper {
+          position: relative;
+        }
+
+        /* ── Tooltip: appears to the RIGHT on desktop ── */
+        .cz-tooltip {
+          position: absolute;
+          left: calc(100% + 12px);
+          top: 50%;
+          transform: translateY(-50%);
+          background-color: #0F172A;
+          color: #ffffff;
+          font-size: 12px;
+          font-weight: 500;
+          padding: 4px 10px;
+          border-radius: 6px;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.15s ease;
+          z-index: 50;
+        }
+
+        .cz-nav-item-wrapper:hover .cz-tooltip {
+          opacity: 1;
+        }
+
+        /* Main content offset — desktop */
+        .cz-store-main {
+          margin-left: 72px;
+        }
+
+        /* ════════════════════════════════
+           MOBILE / TABLET: bottom nav (< 1024px)
+           ════════════════════════════════ */
+        @media (max-width: 1023px) {
+
+          /* Convert sidebar → bottom bar */
+          .cz-sidebar {
+            top: auto !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            height: 64px !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-around !important;
+            padding: 0 4px !important;
+            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+            border-right: none !important;
+            border-top: 1px solid #E5E7EB !important;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.06) !important;
+          }
+
+          /* Hide the vertical logo */
+          .cz-sidebar-logo {
+            display: none !important;
+          }
+
+          /* Main nav: horizontal row */
+          .cz-sidebar-main-nav {
+            flex-direction: row !important;
+            flex: unset !important;
+            gap: 0 !important;
+            align-items: center !important;
+          }
+
+          /* Bottom section: inline with main nav */
+          .cz-sidebar-bottom {
+            flex-direction: row !important;
+            gap: 0 !important;
+            align-items: center !important;
+          }
+
+          /* Hide "Back to site" on small screens — not useful in bottom bar */
+          .cz-sidebar-back {
+            display: none !important;
+          }
+
+          /* Tooltip: appear ABOVE icons on mobile */
+          .cz-tooltip {
+            left: 50% !important;
+            top: auto !important;
+            bottom: calc(100% + 8px) !important;
+            transform: translateX(-50%) !important;
+          }
+
+          /* Nav item size — slightly compact on mobile */
+          .cz-nav-item {
+            width: 44px !important;
+            height: 44px !important;
+          }
+
+          /* Main content: no left margin, add bottom padding for the bar */
+          .cz-store-main {
+            margin-left: 0 !important;
+            padding-bottom: 64px !important;
+          }
+        }
+      `}</style>
+    </>
   );
 }
