@@ -6,7 +6,7 @@ export default function MinimalLayout({ children }) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <StoreSidebar />
-      <main className="cz-store-main" style={{ flex: 1, minHeight: '100vh' }}>
+      <main className="cz-store-main" style={{ flex: '1 1 0%', minHeight: '100vh', minWidth: 0 }}>
         {children}
       </main>
     </div>
