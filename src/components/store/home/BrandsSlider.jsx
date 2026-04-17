@@ -1,8 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
+
+// Import Swiper React components and modules
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { FreeMode } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/free-mode';
 
 // ── Skeleton card ──────────────────────────────────────────────────────────
 function BrandSkeleton() {
@@ -17,7 +25,7 @@ function BrandSkeleton() {
 // ── Brand card ─────────────────────────────────────────────────────────────
 function BrandCard({ brand }) {
   return (
-    <Link href={`/store/brand/${brand.slug}`} className="czb-link">
+    <Link href={`/store/brand/${brand.slug || brand._id}`} className="czb-link">
       <div className="czb-card">
         {brand.image ? (
           <div className="czb-imgbox">
@@ -38,10 +46,6 @@ function BrandCard({ brand }) {
 export default function BrandsSlider() {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
-  const trackRef = useRef(null);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
 
   useEffect(() => {
     api.get('/brands')
@@ -49,22 +53,6 @@ export default function BrandsSlider() {
       .catch(err => console.error('BrandsSlider:', err))
       .finally(() => setLoading(false));
   }, []);
-
-  // ── Drag-to-scroll ──────────────────────────────────────────────────────
-  const onMouseDown = (e) => {
-    isDragging.current = true;
-    startX.current = e.pageX - trackRef.current.offsetLeft;
-    scrollLeft.current = trackRef.current.scrollLeft;
-    trackRef.current.style.cursor = 'grabbing';
-  };
-  const onMouseLeave = () => { isDragging.current = false; if (trackRef.current) trackRef.current.style.cursor = 'grab'; };
-  const onMouseUp   = () => { isDragging.current = false; if (trackRef.current) trackRef.current.style.cursor = 'grab'; };
-  const onMouseMove = (e) => {
-    if (!isDragging.current) return;
-    const x = e.pageX - trackRef.current.offsetLeft;
-    const walk = (x - startX.current) * 1.5;
-    trackRef.current.scrollLeft = scrollLeft.current - walk;
-  };
 
   return (
     <section className="czb-section">
@@ -77,23 +65,41 @@ export default function BrandsSlider() {
         <Link href="/store/brands" className="czb-see-all">See all →</Link>
       </div>
 
-      {/* Slider track */}
-      <div
-        ref={trackRef}
-        className="czb-track"
-        onMouseDown={onMouseDown}
-        onMouseLeave={onMouseLeave}
-        onMouseUp={onMouseUp}
-        onMouseMove={onMouseMove}
-      >
-        {loading
-          ? Array.from({ length: 8 }).map((_, i) => <BrandSkeleton key={i} />)
-          : brands.map(b => <BrandCard key={b._id || b.slug} brand={b} />)
-        }
+      {/* Actual Swiper implementation preventing layout stretch */}
+      <div className="czb-slider-container">
+        {loading ? (
+          <Swiper
+            modules={[FreeMode]}
+            freeMode={true}
+            spaceBetween={12}
+            slidesPerView="auto"
+            className="czb-swiper"
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SwiperSlide key={i} style={{ width: '120px' }}>
+                <BrandSkeleton />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <Swiper
+            modules={[FreeMode]}
+            freeMode={true}
+            spaceBetween={12}
+            slidesPerView="auto"
+            className="czb-swiper"
+          >
+            {brands.map((b) => (
+              <SwiperSlide key={b._id || b.slug} style={{ width: '120px' }}>
+                <BrandCard brand={b} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
       </div>
 
       <style>{`
-        .czb-section { width: 100%; }
+        .czb-section { width: 100%; min-width: 0; overflow: hidden; }
 
         .czb-header {
           display: flex;
@@ -124,31 +130,28 @@ export default function BrandsSlider() {
         }
         .czb-see-all:hover { text-decoration: underline; }
 
-        /* Scrollable track */
-        .czb-track {
-          display: flex;
-          gap: 12px;
-          overflow-x: auto;
-          overflow-y: hidden;
-          scroll-behavior: smooth;
-          scroll-snap-type: x mandatory;
-          touch-action: pan-x;
-          cursor: grab;
-          padding-bottom: 8px;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
+        /* Slider Constraints to avoid breaking layout */
+        .czb-slider-container {
+          width: 100%;
+          min-width: 0;
+          position: relative;
         }
-        .czb-track::-webkit-scrollbar { display: none; }
+        
+        .czb-swiper {
+          width: 100%;
+          min-width: 0;
+          padding-bottom: 12px;
+        }
 
-        /* Card */
+        /* Card styles inside SwiperSlide */
         .czb-link { 
+          display: block;
           text-decoration: none; 
-          flex-shrink: 0; 
-          scroll-snap-align: start;
+          width: 100%;
         }
 
         .czb-card {
-          width: 120px;
+          width: 100%;
           background: #ffffff;
           border: 1px solid #E5E7EB;
           border-radius: 14px;
@@ -202,6 +205,10 @@ export default function BrandsSlider() {
           text-transform: uppercase;
           letter-spacing: 0.04em;
           text-align: center;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          width: 100%;
         }
 
         /* Skeleton */

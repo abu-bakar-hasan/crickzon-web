@@ -1,9 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+// Import Swiper React components and modules
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination, Navigation } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+
 import Link from 'next/link';
 
-// Static slides — swap for API data when a banners endpoint exists
+// Static slides
 const SLIDES = [
   {
     id: 1,
@@ -38,87 +46,64 @@ const SLIDES = [
 ];
 
 export default function HeroBanner() {
-  const [current, setCurrent] = useState(0);
-  const timerRef = useRef(null);
-  const total = SLIDES.length;
-
-  const goTo = (idx) => setCurrent((idx + total) % total);
-
-  // Auto-play
-  useEffect(() => {
-    timerRef.current = setInterval(() => goTo(current + 1), 4500);
-    return () => clearInterval(timerRef.current);
-  }, [current]);
-
-  const slide = SLIDES[current];
-
   return (
     <section className="czh-hero">
-      {/* Slides */}
-      <div
-        className="czh-track"
-        style={{ transform: `translateX(-${current * 100}%)` }}
+      <Swiper
+        modules={[Autoplay, Pagination, Navigation]}
+        spaceBetween={0}
+        slidesPerView={1}
+        loop={true}
+        autoplay={{ delay: 4500, disableOnInteraction: false }}
+        pagination={{ clickable: true, el: '.czh-custom-pagination' }}
+        navigation={{ nextEl: '.czh-arrow--next', prevEl: '.czh-arrow--prev' }}
+        className="w-full h-full"
       >
         {SLIDES.map((s) => (
-          <div key={s.id} className="czh-slide" style={{ background: s.gradient }}>
-            {/* Decorative circles */}
-            <div className="czh-circle czh-circle-1" style={{ borderColor: s.accent }} />
-            <div className="czh-circle czh-circle-2" style={{ borderColor: s.accent }} />
+          <SwiperSlide key={s.id}>
+            <div className="czh-slide" style={{ background: s.gradient }}>
+              {/* Decorative circles */}
+              <div className="czh-circle czh-circle-1" style={{ borderColor: s.accent }} />
+              <div className="czh-circle czh-circle-2" style={{ borderColor: s.accent }} />
 
-            <div className="czh-content">
-              <span className="czh-tag" style={{ backgroundColor: s.accent, color: '#0F172A' }}>
-                {s.tag}
-              </span>
-              <div className="czh-emoji">{s.emoji}</div>
-              <h2 className="czh-title">{s.title}</h2>
-              <p className="czh-sub">{s.subtitle}</p>
-              <Link href={s.cta.href} className="czh-btn" style={{ backgroundColor: s.accent, color: '#0F172A' }}>
-                {s.cta.label} →
-              </Link>
+              <div className="czh-content">
+                <span className="czh-tag" style={{ backgroundColor: s.accent, color: '#0F172A' }}>
+                  {s.tag}
+                </span>
+                <div className="czh-emoji">{s.emoji}</div>
+                <h2 className="czh-title">{s.title}</h2>
+                <p className="czh-sub">{s.subtitle}</p>
+                <Link href={s.cta.href} className="czh-btn" style={{ backgroundColor: s.accent, color: '#0F172A' }}>
+                  {s.cta.label} →
+                </Link>
+              </div>
             </div>
-          </div>
+          </SwiperSlide>
         ))}
-      </div>
+      </Swiper>
 
-      {/* Dot pagination */}
-      <div className="czh-dots">
-        {SLIDES.map((_, i) => (
-          <button
-            key={i}
-            className={`czh-dot ${i === current ? 'czh-dot--active' : ''}`}
-            onClick={() => goTo(i)}
-            aria-label={`Go to slide ${i + 1}`}
-          />
-        ))}
-      </div>
+      {/* Custom Dot pagination container */}
+      <div className="czh-custom-pagination"></div>
 
       {/* Arrow controls */}
-      <button className="czh-arrow czh-arrow--prev" onClick={() => goTo(current - 1)} aria-label="Previous slide">‹</button>
-      <button className="czh-arrow czh-arrow--next" onClick={() => goTo(current + 1)} aria-label="Next slide">›</button>
+      <button className="czh-arrow czh-arrow--prev" aria-label="Previous slide">‹</button>
+      <button className="czh-arrow czh-arrow--next" aria-label="Next slide">›</button>
 
       <style>{`
         .czh-hero {
           position: relative;
           width: 100%;
+          min-width: 0;
           height: 320px;
           overflow: hidden;
           border-radius: 16px;
         }
 
-        .czh-track {
-          display: flex;
-          width: 100%;
-          height: 100%;
-          transition: transform 0.6s cubic-bezier(0.77, 0, 0.18, 1);
-        }
-
         .czh-slide {
           position: relative;
-          min-width: 100%;
+          width: 100%;
           height: 100%;
           display: flex;
           align-items: center;
-          overflow: hidden;
           padding: 0 48px;
         }
 
@@ -197,8 +182,8 @@ export default function HeroBanner() {
           transform: translateY(-1px);
         }
 
-        /* Dots */
-        .czh-dots {
+        /* Swiper overrides */
+        .czh-custom-pagination {
           position: absolute;
           bottom: 14px;
           left: 50%;
@@ -207,18 +192,17 @@ export default function HeroBanner() {
           gap: 6px;
           z-index: 10;
         }
-
-        .czh-dot {
+        
+        .swiper-pagination-bullet {
           width: 7px;
           height: 7px;
           border-radius: 50%;
-          border: none;
           background: rgba(255,255,255,0.4);
-          cursor: pointer;
-          padding: 0;
+          opacity: 1;
+          margin: 0 !important;
           transition: background 0.2s, width 0.2s;
         }
-        .czh-dot--active {
+        .swiper-pagination-bullet-active {
           background: #ffffff;
           width: 20px;
           border-radius: 100px;
@@ -246,6 +230,7 @@ export default function HeroBanner() {
           line-height: 1;
         }
         .czh-arrow:hover { background: rgba(255,255,255,0.3); }
+        .czh-arrow.swiper-button-disabled { opacity: 0.5; cursor: not-allowed; }
         .czh-arrow--prev { left: 12px; }
         .czh-arrow--next { right: 12px; }
 
