@@ -12,10 +12,10 @@ import {
 import useCartStore from '@/store/cartStore';
 
 export const mainNav = [
-  { href: '/store',            icon: Home01Icon,    label: 'Home'       },
-  { href: '/store/search',     icon: Search01Icon,  label: 'Search'     },
-  { href: '/store/categories', icon: GridIcon,      label: 'Categories', extraClass: 'cz-desktop-only' },
-  { href: '/store/brands',     icon: Award01Icon,   label: 'Brands',     extraClass: 'cz-desktop-only' },
+  { href: '/',             icon: Home01Icon,    label: 'Home'       },
+  { href: '/store',        icon: GridIcon,      label: 'Store'      },
+  { href: '/store/search', icon: Search01Icon,  label: 'Search'     },
+  { href: '/store/brands', icon: Award01Icon,   label: 'Brands',    extraClass: 'cz-desktop-only' },
 ];
 
 // ─── Individual nav item ───────────────────────────────────────────────────
@@ -55,6 +55,7 @@ export default function SidebarNav({ pathname }) {
   const cartCount = items?.reduce((sum, i) => sum + i.quantity, 0) || 0;
 
   const isActive = (href) => {
+    if (href === '/') return pathname === '/';
     if (href === '/store') return pathname === '/store';
     return pathname.startsWith(href);
   };

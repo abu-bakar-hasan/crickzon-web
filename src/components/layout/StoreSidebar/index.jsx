@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UserIcon, ArrowLeft01Icon } from '@hugeicons/core-free-icons';
+import { UserIcon } from '@hugeicons/core-free-icons';
 import SidebarNav, { NavItem } from './SidebarNav';
 
 export default function StoreSidebar() {
@@ -27,14 +27,6 @@ export default function StoreSidebar() {
             icon={UserIcon}
             label="Account"
             active={pathname.startsWith('/account')}
-          />
-          {/* Back to home — shown on mobile */}
-          <NavItem
-            href="/"
-            icon={ArrowLeft01Icon}
-            label="Back"
-            active={false}
-            extraClass="cz-sidebar-back cz-mobile-only"
           />
         </div>
       </aside>
@@ -158,13 +150,9 @@ export default function StoreSidebar() {
             display: contents !important;
           }
 
-          /* Hide "Back to site" on desktop, but show on mobile */
+          /* Hide desktop-only items on mobile */
           .cz-nav-item-wrapper.cz-desktop-only {
             display: none !important;
-          }
-          
-          .cz-nav-item-wrapper.cz-mobile-only {
-             display: flex !important;
           }
 
           /* Layout wrapper for stacking icon and label */
