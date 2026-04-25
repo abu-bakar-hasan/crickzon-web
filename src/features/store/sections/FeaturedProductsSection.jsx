@@ -18,89 +18,42 @@ export default function FeaturedProductsSection() {
   }, []);
 
   return (
-    <section style={{ backgroundColor: '#F8FAFC', padding: '48px 24px' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-        
-        <div className="cz-products-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
-          <div style={{ textAlign: 'center', width: '100%' }} className="cz-products-header-title">
-            <h2 style={{ fontSize: '28px', fontWeight: 700, color: '#0F172A', margin: '0 0 8px 0' }}>New Arrivals</h2>
-            <p style={{ fontSize: '15px', color: '#6B7280', margin: 0 }}>Fresh gear just dropped</p>
+    <section className="bg-cz-surface py-12 px-6">
+      <div className="max-w-[1280px] mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+          <div className="text-center sm:text-left">
+            <h2 className="text-3xl font-bold text-cz-ink mb-2">New Arrivals</h2>
+            <p className="text-[15px] text-cz-gray">Fresh gear just dropped</p>
           </div>
-          
-          <Link 
+          <Link
             href="/store"
-            className="cz-view-all-btn"
-            style={{
-              display: 'inline-block',
-              border: '1px solid #E5E7EB',
-              padding: '8px 16px',
-              borderRadius: '50px',
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#374151',
-              textDecoration: 'none',
-              transition: 'background-color 0.2s ease',
-              whiteSpace: 'nowrap'
-            }}
+            className="shrink-0 border border-cz-border px-4 py-2 rounded-full text-[13px] font-semibold text-gray-700 no-underline hover:bg-gray-50 transition-colors whitespace-nowrap"
           >
             View All
           </Link>
         </div>
 
-        <div className="cz-products-grid">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, idx) => (
-              <ProductCardSkeleton key={idx} />
-            ))
-          ) : (
-            products.map((product) => (
-              <ProductCard
-                key={product._id || product.slug}
-                productId={product._id}
-                name={product.name}
-                brand={product.brand}
-                images={product.images}
-                minPrice={product.minPrice || product.price}
-                maxPrice={product.maxPrice || product.price}
-                slug={product.slug}
-                variants={product.variants}
-              />
-            ))
-          )}
+        {/* Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {loading
+            ? Array.from({ length: 4 }).map((_, idx) => <ProductCardSkeleton key={idx} />)
+            : products.map((product) => (
+                <ProductCard
+                  key={product._id || product.slug}
+                  productId={product._id}
+                  name={product.name}
+                  brand={product.brand}
+                  images={product.images}
+                  minPrice={product.minPrice || product.price}
+                  maxPrice={product.maxPrice || product.price}
+                  slug={product.slug}
+                  variants={product.variants}
+                />
+              ))
+          }
         </div>
-
       </div>
-      
-      <style>{`
-        .cz-products-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 24px;
-        }
-
-        @media (max-width: 1024px) {
-          .cz-products-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .cz-products-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-          }
-          
-          .cz-products-header {
-            flex-direction: column;
-            align-items: center !important;
-            gap: 16px;
-          }
-          
-          .cz-products-header-title {
-            text-align: center;
-          }
-        }
-      `}</style>
     </section>
   );
 }

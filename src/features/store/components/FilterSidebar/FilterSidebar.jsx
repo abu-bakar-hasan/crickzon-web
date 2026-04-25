@@ -12,28 +12,15 @@ const FALLBACK_COLORS = [
   "#F3E5F5", "#E0F2F1", "#FFF8E1", "#E8EAF6",
 ];
 
-/**
- * FilterSliders
- * Props:
- *   filters        { category: string, brand: string }
- *   onFilterChange (key, value) => void
- *
- * Two horizontal Swiper image-card sliders — Category and Brand —
- * styled identically to BrandsSlider / CategorySection.
- * Active card gets a blue ring + label colour change.
- */
 export default function FilterSliders({ filters, onFilterChange }) {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
 
   useEffect(() => {
-    api
-      .get("/categories")
+    api.get("/categories")
       .then((res) => setCategories(res.data.categories || res.data || []))
       .catch((err) => console.error("FilterSliders categories:", err));
-
-    api
-      .get("/brands")
+    api.get("/brands")
       .then((res) => setBrands(res.data.brands || res.data || []))
       .catch((err) => console.error("FilterSliders brands:", err));
   }, []);
@@ -42,13 +29,12 @@ export default function FilterSliders({ filters, onFilterChange }) {
     onFilterChange(key, filters[key] === val ? "" : val);
 
   return (
-    <div style={styles.root}>
+    <div className="flex flex-col gap-4 w-full min-w-0">
       {/* ── Category strip ── */}
       {categories.length > 0 && (
         <FilterCardStrip label="Category">
           {categories.map((cat, i) => {
             const val = cat.slug || cat.name;
-            const isActive = filters.category === val;
             return (
               <SwiperSlide key={cat._id || val} style={{ width: "100px" }}>
                 <FilterCard
@@ -56,7 +42,7 @@ export default function FilterSliders({ filters, onFilterChange }) {
                   fallbackBg={FALLBACK_COLORS[i % FALLBACK_COLORS.length]}
                   fallbackIcon={cat.icon || "🛍️"}
                   label={cat.name}
-                  active={isActive}
+                  active={filters.category === val}
                   onClick={() => toggle("category", val)}
                 />
               </SwiperSlide>
@@ -70,14 +56,13 @@ export default function FilterSliders({ filters, onFilterChange }) {
         <FilterCardStrip label="Brand">
           {brands.map((brand) => {
             const val = brand.name;
-            const isActive = filters.brand === val;
             return (
               <SwiperSlide key={brand._id || brand.name} style={{ width: "100px" }}>
                 <FilterCard
                   image={brand.image}
                   fallbackInitial={brand.name?.charAt(0).toUpperCase()}
                   label={brand.name}
-                  active={isActive}
+                  active={filters.brand === val}
                   onClick={() => toggle("brand", val)}
                 />
               </SwiperSlide>
@@ -85,106 +70,17 @@ export default function FilterSliders({ filters, onFilterChange }) {
           })}
         </FilterCardStrip>
       )}
-
-      <style>{`
-        /* Active ring on the card wrapper */
-        .czfs-card--active {
-          outline: 2px solid #0057A8;
-          outline-offset: 2px;
-          box-shadow: 0 4px 14px rgba(0,87,168,0.18) !important;
-          transform: translateY(-2px) !important;
-        }
-        .czfs-card {
-          width: 100%;
-          background: #ffffff;
-          border: 1px solid #E5E7EB;
-          border-radius: 14px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-          padding: 12px 6px 10px;
-          cursor: pointer;
-          user-select: none;
-          transition: box-shadow 0.2s ease, transform 0.2s ease;
-        }
-        .czfs-card:hover:not(.czfs-card--active) {
-          box-shadow: 0 4px 12px rgba(0,87,168,0.10);
-          transform: translateY(-2px);
-        }
-        .czfs-imgbox {
-          width: 52px;
-          height: 52px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #F8FAFC;
-          border-radius: 10px;
-          overflow: hidden;
-        }
-        .czfs-img {
-          max-width: 100%;
-          max-height: 100%;
-          object-fit: contain;
-        }
-        .czfs-initial {
-          width: 52px;
-          height: 52px;
-          background: #EBF3FF;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 22px;
-          font-weight: 800;
-          color: #0057A8;
-        }
-        .czfs-icon-box {
-          width: 52px;
-          height: 52px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 22px;
-        }
-        .czfs-label {
-          font-size: 11px;
-          font-weight: 600;
-          color: #0F172A;
-          text-transform: uppercase;
-          letter-spacing: 0.03em;
-          text-align: center;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          width: 100%;
-        }
-        .czfs-card--active .czfs-label {
-          color: #0057A8;
-        }
-        .czfs-swiper {
-          width: 100%;
-          padding-bottom: 8px !important;
-        }
-      `}</style>
     </div>
   );
 }
 
-/* ── Strip wrapper with label ───────────────────────────────────────── */
+/* ── Strip with heading ─────────────────────────────────────────── */
 function FilterCardStrip({ label, children }) {
   return (
-    <div style={stripStyles.wrapper}>
-      <span style={stripStyles.label}>{label}</span>
-      <div style={stripStyles.sliderContainer}>
-        <Swiper
-          modules={[FreeMode]}
-          freeMode={true}
-          spaceBetween={10}
-          slidesPerView="auto"
-          className="czfs-swiper"
-        >
+    <div className="flex flex-col gap-2.5 w-full min-w-0 overflow-hidden">
+      <span className="text-sm font-bold text-cz-ink">{label}</span>
+      <div className="w-full min-w-0 overflow-hidden">
+        <Swiper modules={[FreeMode]} freeMode spaceBetween={10} slidesPerView="auto" className="!pb-2">
           {children}
         </Swiper>
       </div>
@@ -192,62 +88,36 @@ function FilterCardStrip({ label, children }) {
   );
 }
 
-/* ── Individual filter card ─────────────────────────────────────────── */
+/* ── Individual image card ──────────────────────────────────────── */
 function FilterCard({ image, fallbackBg, fallbackInitial, fallbackIcon, label, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`czfs-card${active ? " czfs-card--active" : ""}`}
-      style={{ background: "none", border: "none", padding: 0, width: "100%" }}
+      className={[
+        "w-full bg-white border rounded-[14px] flex flex-col items-center gap-2 px-1.5 py-3 cursor-pointer select-none transition-all duration-150",
+        active
+          ? "border-cz-blue outline outline-2 outline-cz-blue outline-offset-2 shadow-[0_2px_8px_rgba(0,87,168,0.25)] -translate-y-0.5"
+          : "border-cz-border hover:border-cz-blue hover:shadow-[0_4px_12px_rgba(0,87,168,0.10)] hover:-translate-y-0.5",
+      ].join(" ")}
     >
-      <div className={`czfs-card${active ? " czfs-card--active" : ""}`} style={{ width: "100%" }}>
-        {/* Image or fallback */}
-        {image ? (
-          <div className="czfs-imgbox">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={image} alt={label} className="czfs-img" />
-          </div>
-        ) : fallbackInitial ? (
-          <div className="czfs-initial">{fallbackInitial}</div>
-        ) : (
-          <div className="czfs-icon-box" style={{ backgroundColor: fallbackBg }}>
-            <span>{fallbackIcon}</span>
-          </div>
-        )}
-        <span className="czfs-label">{label}</span>
-      </div>
+      {/* Image / fallback */}
+      {image ? (
+        <div className="w-13 h-13 flex items-center justify-center bg-cz-surface rounded-[10px] overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt={label} className="max-w-full max-h-full object-contain" />
+        </div>
+      ) : fallbackInitial ? (
+        <div className="w-13 h-13 bg-cz-blue-light rounded-[10px] flex items-center justify-center text-[22px] font-extrabold text-cz-blue">
+          {fallbackInitial}
+        </div>
+      ) : (
+        <div className="w-13 h-13 rounded-[10px] flex items-center justify-center text-[22px]" style={{ backgroundColor: fallbackBg }}>
+          {fallbackIcon}
+        </div>
+      )}
+      <span className={`text-[11px] font-semibold uppercase tracking-[0.03em] text-center truncate w-full ${active ? "text-cz-blue" : "text-cz-ink"}`}>
+        {label}
+      </span>
     </button>
   );
 }
-
-const styles = {
-  root: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-    width: "100%",
-    minWidth: 0,
-  },
-};
-
-const stripStyles = {
-  wrapper: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    width: "100%",
-    minWidth: 0,
-    overflow: "hidden",
-  },
-  label: {
-    fontSize: "14px",
-    fontWeight: 700,
-    color: "#0F172A",
-    letterSpacing: "0.01em",
-  },
-  sliderContainer: {
-    width: "100%",
-    minWidth: 0,
-    overflow: "hidden",
-  },
-};

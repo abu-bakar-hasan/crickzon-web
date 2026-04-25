@@ -10,6 +10,15 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Crickzon brand tokens */
+  --color-cz-blue:      #0057A8;
+  --color-cz-blue-dark: #004485;
+  --color-cz-blue-light:#EBF3FF;
+  --color-cz-gray:      #6B7280;
+  --color-cz-border:    #E5E7EB;
+  --color-cz-surface:   #F8FAFC;
+  --color-cz-ink:       #0F172A;
 }
 
 body {

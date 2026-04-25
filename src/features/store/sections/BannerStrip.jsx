@@ -1,54 +1,22 @@
 export default function BannerStrip() {
-  return (
-    <section style={{ backgroundColor: '#0057A8', padding: '20px 24px' }}>
-      <div 
-        style={{ 
-          maxWidth: '1280px', 
-          margin: '0 auto', 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}
-        className="cz-banner-strip"
-      >
-        <div className="cz-banner-item">
-          <span style={{ fontSize: '14px', color: '#ffffff', fontWeight: 500 }}>🚚 Free Shipping on orders above ₹999</span>
-        </div>
-        <div className="cz-banner-divider"></div>
-        <div className="cz-banner-item">
-          <span style={{ fontSize: '14px', color: '#ffffff', fontWeight: 500 }}>↩️ Easy 7-day Returns</span>
-        </div>
-        <div className="cz-banner-divider"></div>
-        <div className="cz-banner-item">
-          <span style={{ fontSize: '14px', color: '#ffffff', fontWeight: 500 }}>✅ 100% Authentic Products</span>
-        </div>
-      </div>
-      
-      <style>{`
-        .cz-banner-divider {
-          width: 1px;
-          height: 16px;
-          background-color: rgba(255,255,255,0.3);
-          margin: 0 24px;
-        }
-        
-        .cz-banner-item {
-          display: flex;
-          align-items: center;
-        }
+  const items = [
+    '🚚 Free Shipping on orders above ₹999',
+    '↩️ Easy 7-day Returns',
+    '✅ 100% Authentic Products',
+  ];
 
-        @media (max-width: 768px) {
-          .cz-banner-strip {
-            flex-direction: column;
-            gap: 12px;
-            text-align: center;
-          }
-          .cz-banner-divider {
-            display: none;
-          }
-        }
-      `}</style>
+  return (
+    <section className="bg-cz-blue py-5 px-6">
+      <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-0 text-center">
+        {items.map((text, i) => (
+          <div key={i} className="flex items-center">
+            <span className="text-sm text-white font-medium">{text}</span>
+            {i < items.length - 1 && (
+              <span className="hidden sm:block w-px h-4 bg-white/30 mx-6" />
+            )}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
