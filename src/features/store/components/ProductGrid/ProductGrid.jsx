@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import { useDebounce } from "@/hooks/useDebounce";
 import SearchBar from "@/features/store/components/SearchBar/SearchBar";
-import FilterSidebar from "@/features/store/components/FilterSidebar/FilterSidebar";
+import FilterSliders from "@/features/store/components/FilterSidebar/FilterSidebar";
 import ProductCard from "@/features/store/components/ProductCard/ProductCard";
 
 /* ── Skeleton card ────────────────────────────────────────────────── */
@@ -105,44 +105,38 @@ export default function ProductGrid() {
         <SearchBar value={searchTerm} onChange={setSearchTerm} />
       </div>
 
-      {/* ── Body: sidebar + grid ── */}
-      <div style={styles.body}>
-        {/* Filter sidebar — desktop only */}
-        <div style={styles.sidebarWrapper} className="czpg-sidebar">
-          <FilterSidebar
-            filters={filters}
-            onFilterChange={handleFilterChange}
-          />
-        </div>
+      {/* ── Filter sliders (full width, above grid) ── */}
+      <div style={styles.filtersRow}>
+        <FilterSliders filters={filters} onFilterChange={handleFilterChange} />
+      </div>
 
-        {/* Product grid */}
-        <div style={styles.gridWrapper}>
-          {loading ? (
-            <div style={styles.grid} className="czpg-grid">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
-          ) : products.length === 0 ? (
-            <EmptyState onClear={handleClearAll} />
-          ) : (
-            <div style={styles.grid} className="czpg-grid">
-              {products.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  productId={product._id}
-                  name={product.name}
-                  brand={product.brand}
-                  images={product.images}
-                  minPrice={product.minPrice}
-                  maxPrice={product.maxPrice}
-                  slug={product.slug}
-                  variants={product.variants}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+      {/* ── Product grid ── */}
+      <div style={styles.gridWrapper}>
+        {loading ? (
+          <div style={styles.grid} className="czpg-grid">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : products.length === 0 ? (
+          <EmptyState onClear={handleClearAll} />
+        ) : (
+          <div style={styles.grid} className="czpg-grid">
+            {products.map((product) => (
+              <ProductCard
+                key={product._id}
+                productId={product._id}
+                name={product.name}
+                brand={product.brand}
+                images={product.images}
+                minPrice={product.minPrice}
+                maxPrice={product.maxPrice}
+                slug={product.slug}
+                variants={product.variants}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Scoped styles ── */}
@@ -158,11 +152,6 @@ export default function ProductGrid() {
         }
         @media (min-width: 1024px) {
           .czpg-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-
-        /* Hide sidebar on mobile */
-        @media (max-width: 767px) {
-          .czpg-sidebar { display: none !important; }
         }
 
         /* Skeleton pulse animation */
@@ -183,21 +172,18 @@ const styles = {
   root: {
     display: "flex",
     flexDirection: "column",
-    gap: "24px",
+    gap: "20px",
   },
   searchRow: {
     width: "100%",
   },
-  body: {
-    display: "flex",
-    gap: "24px",
-    alignItems: "flex-start",
-  },
-  sidebarWrapper: {
-    flexShrink: 0,
+  filtersRow: {
+    width: "100%",
+    minWidth: 0,
+    overflow: "hidden",
   },
   gridWrapper: {
-    flex: 1,
+    width: "100%",
     minWidth: 0,
   },
   grid: {
