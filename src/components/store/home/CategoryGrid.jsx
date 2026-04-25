@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 
+// Import Swiper React components and modules
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { FreeMode } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/free-mode';
+
 const FALLBACK_COLORS = [
   '#EBF3FF', '#FFF3E0', '#E8F5E9', '#FCE4EC',
   '#F3E5F5', '#E0F2F1', '#FFF8E1', '#E8EAF6',
@@ -13,8 +21,7 @@ function CategorySkeleton() {
   return (
     <div className="czcat-card czcat-skeleton">
       <div className="czcat-skel-img" />
-      <div className="czcat-skel-bar" />
-      <div className="czcat-skel-bar czcat-skel-bar--sm" />
+      <div className="czcat-skel-label" />
     </div>
   );
 }
@@ -26,18 +33,15 @@ function CategoryCard({ cat, index }) {
     <Link href={`/store/c/${cat.slug}`} className="czcat-link">
       <div className="czcat-card">
         {cat.image ? (
-          <img src={cat.image} alt={cat.name} className="czcat-img" />
+          <div className="czcat-imgbox">
+             <img src={cat.image} alt={cat.name} className="czcat-img" />
+          </div>
         ) : (
           <div className="czcat-icon-box" style={{ backgroundColor: bg }}>
             <span className="czcat-icon">{cat.icon || '🛍️'}</span>
           </div>
         )}
-        <div className="czcat-body">
-          <span className="czcat-name">{cat.name}</span>
-          {cat.productCount > 0 && (
-            <span className="czcat-count">{cat.productCount} items</span>
-          )}
-        </div>
+        <span className="czcat-name">{cat.name}</span>
       </div>
     </Link>
   );
@@ -66,17 +70,40 @@ export default function CategoryGrid() {
       </div>
 
       {/* Grid */}
-      <div className="czcat-grid">
-        {loading
-          ? Array.from({ length: 8 }).map((_, i) => <CategorySkeleton key={i} />)
-          : categories.map((cat, i) => (
-              <CategoryCard key={cat._id || cat.slug} cat={cat} index={i} />
-            ))
-        }
+      <div className="czcat-slider-container">
+        {loading ? (
+          <Swiper
+            modules={[FreeMode]}
+            freeMode={true}
+            spaceBetween={12}
+            slidesPerView="auto"
+            className="czcat-swiper"
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SwiperSlide key={i} style={{ width: '120px' }}>
+                <CategorySkeleton />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <Swiper
+            modules={[FreeMode]}
+            freeMode={true}
+            spaceBetween={12}
+            slidesPerView="auto"
+            className="czcat-swiper"
+          >
+            {categories.map((cat, i) => (
+              <SwiperSlide key={cat._id || cat.slug} style={{ width: '120px' }}>
+                <CategoryCard cat={cat} index={i} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
       </div>
 
       <style>{`
-        .czcat-section { width: 100%; }
+        .czcat-section { width: 100%; min-width: 0; overflow: hidden; }
 
         .czcat-header {
           display: flex;
@@ -107,69 +134,85 @@ export default function CategoryGrid() {
         }
         .czcat-see-all:hover { text-decoration: underline; }
 
-        /* Grid */
-        .czcat-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 10px;
+        /* Slider Constraints */
+        .czcat-slider-container {
+          width: 100%;
+          min-width: 0;
+          position: relative;
         }
-        @media (min-width: 540px) {
-          .czcat-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        }
-        @media (min-width: 900px) {
-          .czcat-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+        .czcat-swiper {
+          width: 100%;
+          min-width: 0;
+          padding-bottom: 12px;
         }
 
         /* Link reset */
-        .czcat-link { text-decoration: none; }
+        .czcat-link { 
+          display: block;
+          text-decoration: none; 
+          width: 100%;
+        }
 
         /* Card */
         .czcat-card {
+          width: 100%;
+          background: #ffffff;
           border: 1px solid #E5E7EB;
           border-radius: 14px;
-          overflow: hidden;
-          background: #ffffff;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          padding: 16px 8px 12px;
           transition: box-shadow 0.2s ease, transform 0.2s ease;
           cursor: pointer;
+          user-select: none;
         }
         .czcat-card:hover {
-          box-shadow: 0 6px 22px rgba(0,0,0,0.09);
-          transform: translateY(-3px);
+          box-shadow: 0 4px 18px rgba(0,87,168,0.12);
+          transform: translateY(-2px);
+        }
+
+        .czcat-imgbox {
+          width: 64px;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #F8FAFC;
+          border-radius: 10px;
+          overflow: hidden;
         }
 
         .czcat-img {
-          width: 100%;
-          height: 120px;
-          object-fit: cover;
-          display: block;
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
         }
 
         .czcat-icon-box {
-          width: 100%;
-          height: 120px;
+          width: 64px;
+          height: 64px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        .czcat-icon { font-size: 44px; }
-
-        .czcat-body {
-          padding: 12px 14px;
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
+        .czcat-icon { font-size: 26px; }
 
         .czcat-name {
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 600;
           color: #0F172A;
-        }
-
-        .czcat-count {
-          font-size: 12px;
-          color: #9CA3AF;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          text-align: center;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          width: 100%;
         }
 
         /* Skeleton */
@@ -178,24 +221,19 @@ export default function CategoryGrid() {
           background: #F1F5F9;
           pointer-events: none;
           animation: czcat-pulse 1.4s ease-in-out infinite;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          padding: 14px;
         }
         .czcat-skel-img {
-          width: 100%;
-          height: 100px;
+          width: 64px;
+          height: 64px;
           border-radius: 10px;
           background: #E2E8F0;
         }
-        .czcat-skel-bar {
-          height: 12px;
+        .czcat-skel-label {
+          width: 60px;
+          height: 10px;
           border-radius: 6px;
           background: #E2E8F0;
-          width: 80%;
         }
-        .czcat-skel-bar--sm { width: 50%; height: 10px; }
 
         @keyframes czcat-pulse {
           0%, 100% { opacity: 1; }
