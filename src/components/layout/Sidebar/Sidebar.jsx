@@ -1,37 +1,38 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserIcon } from '@hugeicons/core-free-icons';
-import SidebarNav, { NavItem } from './SidebarNav';
+import SidebarLogo from './SidebarLogo';
+import SidebarNav from './SidebarNav';
+import NavItem from './NavItem';
 
-export default function StoreSidebar() {
+/**
+ * Global sidebar — fixed on the left on desktop, bottom bar on mobile/tablet.
+ * Rendered once in AppShell so it appears on every page.
+ */
+export default function Sidebar() {
   const pathname = usePathname();
 
   return (
     <>
       <aside className="cz-sidebar">
+        {/* Logo — desktop only */}
+        <SidebarLogo />
 
-        {/* ── Logo (desktop only) ── */}
-        <Link href="/" className="cz-sidebar-logo">
-          <span style={{ fontSize: '22px', fontWeight: 700, color: '#0057A8' }}>C</span>
-        </Link>
+        {/* Main navigation icons */}
+        <SidebarNav />
 
-        {/* ── Main nav icons ── */}
-        <SidebarNav pathname={pathname} />
-
-        {/* ── Bottom icons ── */}
+        {/* Bottom section: account */}
         <div className="cz-sidebar-bottom">
           <NavItem
             href="/account"
             icon={UserIcon}
             label="Account"
-            active={pathname.startsWith('/account')}
+            isActive={pathname.startsWith('/account')}
           />
         </div>
       </aside>
 
-      {/* ── Scoped styles ── */}
       <style>{`
         /* ════════════════════════════════
            DESKTOP: left sidebar (≥ 1024px)
@@ -78,7 +79,7 @@ export default function StoreSidebar() {
           gap: 8px;
         }
 
-        /* ── Nav item hover ── */
+        /* Nav item hover */
         .cz-nav-item:hover {
           background-color: #F3F4F6 !important;
           color: #374151 !important;
@@ -88,7 +89,7 @@ export default function StoreSidebar() {
           position: relative;
         }
 
-        /* ── Tooltip: appears to the RIGHT on desktop ── */
+        /* Tooltip — appears to the RIGHT on desktop */
         .cz-tooltip {
           position: absolute;
           left: calc(100% + 12px);
@@ -117,11 +118,11 @@ export default function StoreSidebar() {
         }
 
         /* ════════════════════════════════
-           MOBILE / TABLET: bottom nav (< 1024px)
+           MOBILE / TABLET: bottom bar (< 1024px)
            ════════════════════════════════ */
         @media (max-width: 1023px) {
 
-          /* Convert sidebar → bottom bar */
+          /* Sidebar becomes a bottom bar */
           .cz-sidebar {
             top: auto !important;
             bottom: 0 !important;
@@ -139,23 +140,23 @@ export default function StoreSidebar() {
             box-shadow: 0 -4px 16px rgba(0,0,0,0.06) !important;
           }
 
-          /* Hide the vertical logo */
+          /* Logo is vertical — hide it on mobile */
           .cz-sidebar-logo {
             display: none !important;
           }
 
-          /* Main nav & bottom section: use contents to distribute all items evenly */
+          /* Both nav sections distribute their items evenly in the row */
           .cz-sidebar-main-nav,
           .cz-sidebar-bottom {
             display: contents !important;
           }
 
-          /* Hide desktop-only items on mobile */
+          /* Desktop-only items are hidden */
           .cz-nav-item-wrapper.cz-desktop-only {
             display: none !important;
           }
 
-          /* Layout wrapper for stacking icon and label */
+          /* Each item becomes a column (icon on top, label below) */
           .cz-nav-item-wrapper {
             display: flex !important;
             flex-direction: column !important;
@@ -165,7 +166,7 @@ export default function StoreSidebar() {
             width: 20% !important;
           }
 
-          /* Tooltip becomes visible static label */
+          /* Tooltip becomes a static visible label */
           .cz-tooltip {
             position: static !important;
             opacity: 1 !important;
@@ -178,23 +179,22 @@ export default function StoreSidebar() {
             font-weight: 500 !important;
           }
 
-          /* Active styling */
+          /* Active item colours */
           .cz-nav-item-wrapper.cz-active .cz-tooltip {
             color: #0057A8 !important;
           }
-
           .cz-nav-item-wrapper.cz-active .cz-nav-item {
             color: #0057A8 !important;
           }
 
-          /* Nav item size compact with transparent background */
+          /* Compact icon size with no background */
           .cz-nav-item {
             width: 32px !important;
             height: 32px !important;
             background-color: transparent !important;
           }
 
-          /* Main content: no left margin */
+          /* Content area: no left margin, pad bottom so it clears the bar */
           .cz-store-main {
             margin-left: 0 !important;
             padding-bottom: 70px !important;

@@ -12,35 +12,8 @@ import { FreeMode } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/free-mode';
 
-// ── Skeleton card ──────────────────────────────────────────────────────────
-function BrandSkeleton() {
-  return (
-    <div className="czb-card czb-skeleton">
-      <div className="czb-skeleton-img" />
-      <div className="czb-skeleton-label" />
-    </div>
-  );
-}
-
-// ── Brand card ─────────────────────────────────────────────────────────────
-function BrandCard({ brand }) {
-  return (
-    <Link href={`/store/brand/${brand.slug || brand._id}`} className="czb-link">
-      <div className="czb-card">
-        {brand.image ? (
-          <div className="czb-imgbox">
-            <img src={brand.image} alt={brand.name} className="czb-img" />
-          </div>
-        ) : (
-          <div className="czb-initial">
-            {brand.name?.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <span className="czb-name">{brand.name}</span>
-      </div>
-    </Link>
-  );
-}
+import BrandCard from './BrandCard';
+import BrandSkeleton from './BrandSkeleton';
 
 // ── Main component ─────────────────────────────────────────────────────────
 export default function BrandsSlider() {

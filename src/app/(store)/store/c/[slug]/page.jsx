@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import ProductCard from '@/features/store/components/ProductCard';
+import ProductCard from '@/features/store/components/ProductCard/ProductCard';
 import ProductCardSkeleton from '@/features/store/components/ProductCard/ProductCard.skeleton';
 import api from '@/lib/axios';
 

@@ -12,49 +12,17 @@ import { FreeMode } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/free-mode';
 
-const FALLBACK_COLORS = [
-  '#EBF3FF', '#FFF3E0', '#E8F5E9', '#FCE4EC',
-  '#F3E5F5', '#E0F2F1', '#FFF8E1', '#E8EAF6',
-];
+import CategoryCard from './CategoryCard';
+import CategorySkeleton from './CategorySkeleton';
 
-function CategorySkeleton() {
-  return (
-    <div className="czcat-card czcat-skeleton">
-      <div className="czcat-skel-img" />
-      <div className="czcat-skel-label" />
-    </div>
-  );
-}
-
-function CategoryCard({ cat, index }) {
-  const bg = FALLBACK_COLORS[index % FALLBACK_COLORS.length];
-
-  return (
-    <Link href={`/store/c/${cat.slug}`} className="czcat-link">
-      <div className="czcat-card">
-        {cat.image ? (
-          <div className="czcat-imgbox">
-             <img src={cat.image} alt={cat.name} className="czcat-img" />
-          </div>
-        ) : (
-          <div className="czcat-icon-box" style={{ backgroundColor: bg }}>
-            <span className="czcat-icon">{cat.icon || '🛍️'}</span>
-          </div>
-        )}
-        <span className="czcat-name">{cat.name}</span>
-      </div>
-    </Link>
-  );
-}
-
-export default function CategoryGrid() {
+export default function CategorySection() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.get('/categories')
       .then(res => setCategories(res.data.categories || res.data || []))
-      .catch(err => console.error('CategoryGrid:', err))
+      .catch(err => console.error('CategorySection:', err))
       .finally(() => setLoading(false));
   }, []);
 
