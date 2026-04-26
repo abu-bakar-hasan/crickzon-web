@@ -4,7 +4,7 @@ import { useToast } from "@/context/ToastContext";
 export default function ShareButton({ product }) {
   const { showToast } = useToast();
 
-  const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://crickzon.vercel.app"}/products/${product.slug}`;
+  const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://crickzon.vercel.app"}/store/${product.slug}`;
   const shareText = `Check out ${product.name} on Crickzon! 🏏`;
 
   const handleShare = async () => {

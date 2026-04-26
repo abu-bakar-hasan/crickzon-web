@@ -29,29 +29,37 @@ export async function generateMetadata({ params }) {
 
   const product = data.product;
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://crickzon.vercel.app";
+  const firstImage = product.images?.[0];
+  const imageUrl = firstImage 
+    ? (firstImage.startsWith('http') ? firstImage : `${siteUrl}${firstImage.startsWith('/') ? '' : '/'}${firstImage}`)
+    : "";
+
   return {
     title: `${product.name} | Crickzon`,
     description: product.description || `Buy ${product.name} at the best price on Crickzon.`,
     openGraph: {
       title: product.name,
       description: product.description || `Buy ${product.name} on Crickzon.`,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://crickzon.vercel.app"}/products/${product.slug}`,
+      url: `${siteUrl}/store/${product.slug}`,
       siteName: "Crickzon",
-      images: [
-        {
-          url: product.images?.[0] || "",
-          width: 1200,
-          height: 630,
-          alt: product.name,
-        },
-      ],
+      ...(imageUrl && {
+        images: [
+          {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: product.name,
+          },
+        ],
+      }),
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: product.name,
       description: product.description,
-      images: [product.images?.[0] || ""],
+      ...(imageUrl && { images: [imageUrl] }),
     },
   };
 }
