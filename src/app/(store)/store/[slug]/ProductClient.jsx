@@ -205,25 +205,32 @@ export default function ProductClient({ product, variants }) {
             <span style={{ color: "#0F172A", fontWeight: 500 }}>{product.name}</span>
           </div>
 
-          {/* Title & Brand */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-            <span
-              style={{
-                backgroundColor: "#EBF3FF",
-                color: "#0057A8",
-                fontSize: "12px",
-                fontWeight: 600,
-                padding: "4px 12px",
-                borderRadius: "50px",
-              }}
-            >
-              {product.brand}
-            </span>
-          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              {/* Title & Brand */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+                <span
+                  style={{
+                    backgroundColor: "#EBF3FF",
+                    color: "#0057A8",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    padding: "4px 12px",
+                    borderRadius: "50px",
+                  }}
+                >
+                  {product.brand}
+                </span>
+              </div>
 
-          <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#0F172A", margin: "0 0 12px 0" }}>
-            {product.name}
-          </h1>
+              <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#0F172A", margin: "0 0 12px 0" }}>
+                {product.name}
+              </h1>
+            </div>
+            <div style={{ marginTop: "4px" }}>
+              <ShareButton product={product} />
+            </div>
+          </div>
 
           {/* Price */}
           <div style={{ fontSize: "24px", fontWeight: 700, color: "#0057A8", marginBottom: "24px" }}>
@@ -373,6 +380,7 @@ export default function ProductClient({ product, variants }) {
               disabled={!inStock}
               style={{
                 flex: 1,
+                padding: "0 24px",
                 backgroundColor: inStock ? "#0057A8" : "#D1D5DB",
                 color: inStock ? "#ffffff" : "#9CA3AF",
                 border: "none",
@@ -387,8 +395,6 @@ export default function ProductClient({ product, variants }) {
               {inStock ? "Add to Cart" : "Out of Stock"}
             </button>
 
-            {/* Share Button */}
-            <ShareButton product={product} />
           </div>
 
           {/* Description */}
@@ -435,11 +441,6 @@ export default function ProductClient({ product, variants }) {
           .cz-pdp-container {
             grid-template-columns: 1fr;
             gap: 32px;
-          }
-          
-          .cz-add-actions {
-            flex-direction: column;
-            align-items: stretch;
           }
         }
       `}</style>

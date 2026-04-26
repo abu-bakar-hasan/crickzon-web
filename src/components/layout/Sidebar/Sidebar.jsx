@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { UserIcon } from '@hugeicons/core-free-icons';
 import SidebarLogo from './SidebarLogo';
@@ -12,10 +13,33 @@ import NavItem from './NavItem';
  */
 export default function Sidebar() {
   const pathname = usePathname();
+  const [showNav, setShowNav] = useState(true);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Hide if scrolling down and scrolled past 50px
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setShowNav(false);
+      } 
+      // Show if scrolling up
+      else if (currentScrollY < lastScrollY) {
+        setShowNav(true);
+      }
+      
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
-      <aside className="cz-sidebar">
+      <aside className={`cz-sidebar ${!showNav ? 'cz-nav-hidden' : ''}`}>
         {/* Logo — desktop only */}
         <SidebarLogo />
 
@@ -138,6 +162,11 @@ export default function Sidebar() {
             border-right: none !important;
             border-top: 1px solid #E5E7EB !important;
             box-shadow: 0 -4px 16px rgba(0,0,0,0.06) !important;
+            transition: transform 0.3s ease-in-out !important;
+          }
+
+          .cz-sidebar.cz-nav-hidden {
+            transform: translateY(100%) !important;
           }
 
           /* Logo is vertical — hide it on mobile */
